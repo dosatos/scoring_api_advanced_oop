@@ -1,9 +1,0 @@
-- setup the enivonment:
-    x virtualenv --python=$(which=python3) venv
-    x git init
-    x create github repo
-    - add readme
-    - git ignore
-- learn what the task is
-- complete todo lst
-
