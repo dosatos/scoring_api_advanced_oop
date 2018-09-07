@@ -67,31 +67,31 @@ class GenderField(object):
 class ClientIDsField(object):
     pass
 
-
-class ClientsInterestsRequest(object):
-    client_ids = ClientIDsField(required=True)
-    date = DateField(required=False, nullable=True)
-
-
-class OnlineScoreRequest(object):
-    first_name = CharField(required=False, nullable=True)
-    last_name = CharField(required=False, nullable=True)
-    email = EmailField(required=False, nullable=True)
-    phone = PhoneField(required=False, nullable=True)
-    birthday = BirthDayField(required=False, nullable=True)
-    gender = GenderField(required=False, nullable=True)
-
-
-class MethodRequest(object):
-    account = CharField(required=False, nullable=True)
-    login = CharField(required=True, nullable=True)
-    token = CharField(required=True, nullable=True)
-    arguments = ArgumentsField(required=True, nullable=True)
-    method = CharField(required=True, nullable=False)
-
-    @property
-    def is_admin(self):
-        return self.login == ADMIN_LOGIN
+#
+# class ClientsInterestsRequest(object):
+#     client_ids = ClientIDsField(required=True)
+#     date = DateField(required=False, nullable=True)
+#
+#
+# class OnlineScoreRequest(object):
+#     first_name = CharField(required=False, nullable=True)
+#     last_name = CharField(required=False, nullable=True)
+#     email = EmailField(required=False, nullable=True)
+#     phone = PhoneField(required=False, nullable=True)
+#     birthday = BirthDayField(required=False, nullable=True)
+#     gender = GenderField(required=False, nullable=True)
+#
+#
+# class MethodRequest(object):
+#     account = CharField(required=False, nullable=True)
+#     login = CharField(required=True, nullable=True)
+#     token = CharField(required=True, nullable=True)
+#     arguments = ArgumentsField(required=True, nullable=True)
+#     method = CharField(required=True, nullable=False)
+#
+#     @property
+#     def is_admin(self):
+#         return self.login == ADMIN_LOGIN
 
 
 def check_auth(request):
@@ -104,7 +104,10 @@ def check_auth(request):
     return False
 
 
-def method_handler(request, ctx, store):
+def method_handler(request, context, store):
+    print("Request: ", request)
+    print("Context: ", context)
+    print("Store: ", store)
     response, code = None, None
     return response, code
 
@@ -157,13 +160,14 @@ if __name__ == "__main__":
     op = OptionParser()
     op.add_option("-p", "--port", action="store", type=int, default=8080)
     op.add_option("-l", "--log", action="store", default=None)
+    print(op.parse_args())
     (opts, args) = op.parse_args()
     logging.basicConfig(filename=opts.log, level=logging.INFO,
                         format='[%(asctime)s] %(levelname).1s %(message)s', datefmt='%Y.%m.%d %H:%M:%S')
     server = HTTPServer(("localhost", opts.port), MainHTTPHandler)
     logging.info("Starting server at %s" % opts.port)
     try:
-        server.server_forever()
+        server.serve_forever()
     except KeyboardInterrupt:
         pass
     server.server_close()
