@@ -125,8 +125,11 @@ class ClientIDsField(BaseField):
 
 class BaseRequest(object):
     def __init__(self, request):
+        self.has_fields = []
         for argument, value in request.items():
             setattr(self, argument, value)
+            if value:
+                self.has_fields.append(argument)
 
 
 # class ClientsInterestsRequest(object):
@@ -231,6 +234,7 @@ def method_handler(request, context, store):
     }
     if store['request'].method == "online_score":
         store['score_request'] = OnlineScoreRequest(store['request'].arguments)
+        context['has'] = store['score_request'].has_fields
     elif store['request'].method == "clients_interests":
         pass
     response, code = Response(store, store).generate_response()
