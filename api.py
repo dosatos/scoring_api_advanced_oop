@@ -39,7 +39,6 @@ INSUFFICIENT_ARGS_MESSAGE = "least required pairs: (phone, email), (first_name, 
 
 
 
-
 class BaseField(object):
     def __init__(self, required=False, nullable=True):
         self.value = None
@@ -64,35 +63,63 @@ class BaseField(object):
 
 class CharField(BaseField):
     def _validate(self):
-        pass
+        if not isinstance(self.value, (str, unicode)):
+            raise TypeError("{self} is incorrect".format(self=self))
+
 
 
 class ArgumentsField(BaseField):
-    pass
+    def _validate(self):
+        if not isinstance(self.value, dict):
+            raise TypeError("Incorrect arguments, should be dict".format(self=self))
+
 
 
 class EmailField(CharField):
-    pass
+    def _validate(self):
+        is_not_str = not isinstance(self.value, (str, unicode))
+        with_not_at = len(self.value.split("@")) != 2
+        wrong_host = len(self.value.split("@")[1].split(".")) != 2
+        if is_not_str and with_not_at and wrong_host:
+            raise TypeError("Incorrect email")
+
 
 
 class PhoneField(BaseField):
-    pass
+    def _validate(self):
+        if not isinstance(self.value, (str, unicode)):
+            raise TypeError("Incorrect phone")
+
 
 
 class DateField(BaseField):
-    pass
+    def _validate(self):
+        datetime.datetime.strptime(self.value, '%d.%m.%Y')
+
+        try:
+            datetime.datetime.strptime(self.value, '%d.%m.%Y')
+        except TypeError:
+            raise TypeError("Incorrect data format, should be dd.mm.yyyy")
 
 
-class BirthDayField(BaseField):
+
+
+class BirthDayField(DateField):
     pass
+
 
 
 class GenderField(BaseField):
-    pass
+    def _validate(self):
+        if not isinstance(self.value, int):
+            raise TypeError("Wrong gender input")
+
 
 
 class ClientIDsField(BaseField):
-    pass
+    def _validate(self):
+        if not isinstance(self.value, int):
+            raise TypeError("Wrong client id input")
 
 
 
