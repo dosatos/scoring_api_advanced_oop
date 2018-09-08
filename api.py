@@ -137,15 +137,6 @@ class BaseRequest(object):
         login = body['login']
         token = body['token']
 
-    def is_valid(self):
-        names_pair = len(set(['phone', 'email']).intersection(self.fields)) == 2
-        gender_birthday_pair = len(set(['first_name', 'last_name']).intersection(self.fields)) == 2
-        phone_email_pair = len(set(['gender', 'birthday']).intersection(self.fields)) == 2
-        if not any([names_pair, gender_birthday_pair, phone_email_pair]):
-            return False
-        return True
-
-
 
 
 # class ClientsInterestsRequest(object):
@@ -161,6 +152,39 @@ class OnlineScoreRequest(BaseRequest):
     phone = PhoneField(required=False, nullable=True)
     birthday = BirthDayField(required=False, nullable=True)
     gender = GenderField(required=False, nullable=True)
+
+    @property
+    def has_first_name(self):
+        return self.first_name is not None
+
+    @property
+    def has_last_name(self):
+        return self.last_name is not None
+
+    @property
+    def has_email(self):
+        return self.email is not None
+
+    @property
+    def has_phone(self):
+        return self.phone is not None
+
+    @property
+    def has_birthday(self):
+        return self.birthday is not None
+
+    @property
+    def has_gender(self):
+        return self.gender is not None
+
+    def is_valid(self):
+        names_pair = self.has_first_name and self.has_last_name
+        gender_birthday_pair = self.has_birthday and self.has_gender
+        phone_email_pair = self.has_phone and self.has_email
+        if not any([names_pair, gender_birthday_pair, phone_email_pair]):
+            return False
+        return True
+
 
 
 
@@ -196,7 +220,6 @@ class Response(object):
         return get_score(self.store, phone, email,
                          birthday=birthday, gender=gender,
                          first_name=first_name, last_name=last_name)
-
 
 
 def check_auth(request):
