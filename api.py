@@ -191,24 +191,23 @@ class MethodRequest(BaseRequest):
 
 class Response(object):
     def __init__(self, context, store):
-        self.context = context
         self.store = store
 
     def generate_response(self):
-        if self.context['score_request'].is_valid():
-            response, code = {"score": self.get_score_from_request()}, 200
-            return response, code
-        if check_auth(self.context['request']):
+        if not check_auth(self.store['request']):
             response, code = "Forbidden", 403
-            return response, code
-        response, code = INSUFFICIENT_ARGS_MESSAGE, 400
+        elif not self.store['score_request'].is_valid():
+            response, code = INSUFFICIENT_ARGS_MESSAGE, 400
+        else:
+            response, code = {"score": self.get_score_from_request()}, 200
         return response, code
 
+
     def get_score_from_request(self):
-        phone, email = self.context['score_request'].phone, self.context['score_request'].email
-        birthday, gender = self.context['score_request'].birthday, self.context['score_request'].gender
-        first_name, last_name = self.context['score_request'].first_name, self.context['score_request'].last_name
-        if self.context['is_admin']:
+        phone, email = self.store['score_request'].phone, self.store['score_request'].email
+        birthday, gender = self.store['score_request'].birthday, self.store['score_request'].gender
+        first_name, last_name = self.store['score_request'].first_name, self.store['score_request'].last_name
+        if self.store['is_admin']:
             return 42
         return get_score(self.store, phone, email,
                          birthday=birthday, gender=gender,
@@ -226,15 +225,15 @@ def check_auth(request):
 
 
 def method_handler(request, context, store):
-    context.update({
+    store = {
         'request': MethodRequest(request['body']),
         'is_admin': False,
-    })
-    if context['request'].method == "online_score":
-        context['score_request'] = OnlineScoreRequest(context['request'].arguments)
-    elif context['request'].method == "clients_interests":
+    }
+    if store['request'].method == "online_score":
+        store['score_request'] = OnlineScoreRequest(store['request'].arguments)
+    elif store['request'].method == "clients_interests":
         pass
-    response, code = Response(context, store).generate_response()
+    response, code = Response(store, store).generate_response()
     return response, code
 
 
