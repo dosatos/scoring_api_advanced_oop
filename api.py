@@ -9,6 +9,7 @@ import hashlib
 import uuid
 from optparse import OptionParser
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
+from scoring import get_score
 
 SALT = "Otus"
 ADMIN_LOGIN = "admin"
@@ -136,7 +137,7 @@ class OnlineScoreRequest(BaseRequest):
 
 
 
-# class MethodRequest(BaseRequest):
+# class MethodRequest(object):
 #     account = CharField(required=False, nullable=True)
 #     login = CharField(required=True, nullable=True)
 #     token = CharField(required=True, nullable=True)
@@ -150,20 +151,25 @@ class OnlineScoreRequest(BaseRequest):
 
 
 class Response(object):
-    def __init__(self, request):
+    def __init__(self, request, store):
         self.request = request
+        self.store = store
 
     def generate_response(self):
         if self.request.is_valid():
-            response, code = {"score": 1.0}, 200
+            response, code = {"score": self.get_score_from_request()}, 200
             return response, code
         response, code = LEAST_ARGS_ERROR_MESSAGE, 400
         return response, code
 
+    def get_score_from_request(self):
+        phone, email = self.request.phone, self.request.email
+        birthday, gender = self.request.birthday, self.request.gender
+        first_name, last_name = self.request.first_name, self.request.last_name
+        return get_score(self.store, phone, email,
+                         birthday=birthday, gender=gender,
+                         first_name=first_name, last_name=last_name)
 
-# - phone-email
-# - first name - last name
-# - gender - birthday
 
 
 def check_auth(request):
@@ -181,7 +187,7 @@ def method_handler(request, context, store):
         r = OnlineScoreRequest(request)
     elif request['body']['method'] == "clients_interests":
         pass
-    response, code = Response(r).generate_response()
+    response, code = Response(r, store).generate_response()
     return response, code
 
 
