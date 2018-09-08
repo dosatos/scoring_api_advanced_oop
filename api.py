@@ -95,18 +95,25 @@ class ClientIDsField(BaseField):
 class BaseRequest(object):
     def __init__(self, request):
         body = request['body']
+        arguments = body['arguments']
+        self.fields = []
+        for argument, value in arguments.items():
+            setattr(self, argument, value)
+            if value is not None:
+                self.fields.append(argument)
+
         account = body['account']
         login = body['login']
         token = body['token']
-        arguments = body['arguments']
-        self.hello = 1
 
-        self.first_name = arguments['first_name']
-        self.last_name = arguments['last_name']
-        self.email = arguments['email']
-        self.phone = arguments['phone']
-        self.birthday = arguments['birthday']
-        self.gender = arguments['gender']
+    def is_valid(self):
+        names_pair = len(set(['phone', 'email']).intersection(self.request.fields)) == 2
+        gender_birthday_pair = len(set(['first_name', 'last_name']).intersection(self.request.fields)) == 2
+        phone_email_pair = len(set(['gender', 'birthday']).intersection(self.request.fields)) == 2
+        if not any(names_pair, gender_birthday_pair, phone_email_pair):
+            return False
+        return True
+
 
 
 
@@ -141,7 +148,21 @@ class OnlineScoreRequest(BaseRequest):
 
 class Response(object):
     def __init__(self, request):
-        pass
+        self.request = request
+
+    def generate_response(self):
+        if self.request.is_valid():
+            response = {"score": 1.0}
+            code = 200
+            return response, code
+        response = "least required pairs: (phone, email), (first_name, last_name), (gender, birthday)"
+        code = 400
+        return response, code
+
+
+# - phone-email
+# - first name - last name
+# - gender - birthday
 
 
 
@@ -158,13 +179,9 @@ def check_auth(request):
 def method_handler(request, context, store):
     if request['body']['method'] == "online_score":
         r = OnlineScoreRequest(request)
-        print "\n!!! dict: ", , "\n"
     elif request['body']['method'] == "clients_interests":
         pass
-
-    print "Context: ", context
-    print "Store: ", store
-    response, code = None, 200
+    response, code = Response(r).generate_response()
     return response, code
 
 
