@@ -35,7 +35,7 @@ GENDERS = {
     MALE: "male",
     FEMALE: "female",
 }
-LEAST_ARGS_ERROR_MESSAGE = "least required pairs: (phone, email), (first_name, last_name), (gender, birthday)"
+INSUFFICIENT_ARGS_MESSAGE = "least required pairs: (phone, email), (first_name, last_name), (gender, birthday)"
 
 
 
@@ -159,7 +159,7 @@ class Response(object):
         if self.request.is_valid():
             response, code = {"score": self.get_score_from_request()}, 200
             return response, code
-        response, code = LEAST_ARGS_ERROR_MESSAGE, 400
+        response, code = INSUFFICIENT_ARGS_MESSAGE, 400
         return response, code
 
     def get_score_from_request(self):
