@@ -125,18 +125,8 @@ class ClientIDsField(BaseField):
 
 class BaseRequest(object):
     def __init__(self, request):
-        body = request['body']
-        arguments = body['arguments']
-        self.fields = []
-        for argument, value in arguments.items():
+        for argument, value in request.items():
             setattr(self, argument, value)
-            if value is not None:
-                self.fields.append(argument)
-
-        account = body['account']
-        login = body['login']
-        token = body['token']
-
 
 
 # class ClientsInterestsRequest(object):
@@ -187,17 +177,16 @@ class OnlineScoreRequest(BaseRequest):
 
 
 
+class MethodRequest(BaseRequest):
+    account = CharField(required=False, nullable=True)
+    login = CharField(required=True, nullable=True)
+    token = CharField(required=True, nullable=True)
+    arguments = ArgumentsField(required=True, nullable=True)
+    method = CharField(required=True, nullable=False)
 
-# class MethodRequest(object):
-#     account = CharField(required=False, nullable=True)
-#     login = CharField(required=True, nullable=True)
-#     token = CharField(required=True, nullable=True)
-#     arguments = ArgumentsField(required=True, nullable=True)
-#     method = CharField(required=True, nullable=False)
-#
-#     @property
-#     def is_admin(self):
-#         return self.login == ADMIN_LOGIN
+    @property
+    def is_admin(self):
+        return self.login == ADMIN_LOGIN
 
 
 
@@ -233,9 +222,11 @@ def check_auth(request):
 
 
 def method_handler(request, context, store):
-    if request['body']['method'] == "online_score":
-        r = OnlineScoreRequest(request)
-    elif request['body']['method'] == "clients_interests":
+    request = MethodRequest(request['body'])
+    print "\n!!!", request.__dict__, "\n"
+    if request.method == "online_score":
+        r = OnlineScoreRequest(request.arguments)
+    elif request.method == "clients_interests":
         pass
     response, code = Response(r, store).generate_response()
     return response, code
