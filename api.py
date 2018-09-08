@@ -36,11 +36,34 @@ GENDERS = {
 }
 
 
-class CharField(object):
-    pass
+class BaseField(object):
+    def __init__(self, required=False, nullable=True):
+        self.value = None
+        self.required = required
+        self.nullable = nullable
+
+    def __get__(self, instance, owner):
+        return self.value
+
+    def __set__(self, instance, value):
+        self.value = value
+        if self.required and self.value == None:
+            raise ValueError("{instance} is a mandatory field".format(instance=instance))
+        if self.nullable and self.value == "":
+            raise ValueError("{instance} cannot be blank".format(instance=instance))
+        self._validate()
+
+    def _validate(self):
+        pass
 
 
-class ArgumentsField(object):
+
+class CharField(BaseField):
+    def _validate(self):
+        pass
+
+
+class ArgumentsField(BaseField):
     pass
 
 
@@ -48,41 +71,62 @@ class EmailField(CharField):
     pass
 
 
-class PhoneField(object):
+class PhoneField(BaseField):
     pass
 
 
-class DateField(object):
+class DateField(BaseField):
     pass
 
 
-class BirthDayField(object):
+class BirthDayField(BaseField):
     pass
 
 
-class GenderField(object):
+class GenderField(BaseField):
     pass
 
 
-class ClientIDsField(object):
+class ClientIDsField(BaseField):
     pass
 
-#
+
+
+class BaseRequest(object):
+    def __init__(self, request):
+        body = request['body']
+        account = body['account']
+        login = body['login']
+        token = body['token']
+        arguments = body['arguments']
+        self.hello = 1
+
+        self.first_name = arguments['first_name']
+        self.last_name = arguments['last_name']
+        self.email = arguments['email']
+        self.phone = arguments['phone']
+        self.birthday = arguments['birthday']
+        self.gender = arguments['gender']
+
+
+
 # class ClientsInterestsRequest(object):
 #     client_ids = ClientIDsField(required=True)
 #     date = DateField(required=False, nullable=True)
-#
-#
-# class OnlineScoreRequest(object):
-#     first_name = CharField(required=False, nullable=True)
-#     last_name = CharField(required=False, nullable=True)
-#     email = EmailField(required=False, nullable=True)
-#     phone = PhoneField(required=False, nullable=True)
-#     birthday = BirthDayField(required=False, nullable=True)
-#     gender = GenderField(required=False, nullable=True)
-#
-#
-# class MethodRequest(object):
+
+
+
+class OnlineScoreRequest(BaseRequest):
+    first_name = CharField(required=False, nullable=True)
+    last_name = CharField(required=False, nullable=True)
+    email = EmailField(required=False, nullable=True)
+    phone = PhoneField(required=False, nullable=True)
+    birthday = BirthDayField(required=False, nullable=True)
+    gender = GenderField(required=False, nullable=True)
+
+
+
+# class MethodRequest(BaseRequest):
 #     account = CharField(required=False, nullable=True)
 #     login = CharField(required=True, nullable=True)
 #     token = CharField(required=True, nullable=True)
@@ -92,6 +136,13 @@ class ClientIDsField(object):
 #     @property
 #     def is_admin(self):
 #         return self.login == ADMIN_LOGIN
+
+
+
+class Response(object):
+    def __init__(self, request):
+        pass
+
 
 
 def check_auth(request):
@@ -105,11 +156,17 @@ def check_auth(request):
 
 
 def method_handler(request, context, store):
-    print("Request: ", request)
-    print("Context: ", context)
-    print("Store: ", store)
-    response, code = None, None
+    if request['body']['method'] == "online_score":
+        r = OnlineScoreRequest(request)
+        print "\n!!! dict: ", , "\n"
+    elif request['body']['method'] == "clients_interests":
+        pass
+
+    print "Context: ", context
+    print "Store: ", store
+    response, code = None, 200
     return response, code
+
 
 
 class MainHTTPHandler(BaseHTTPRequestHandler):
@@ -160,7 +217,6 @@ if __name__ == "__main__":
     op = OptionParser()
     op.add_option("-p", "--port", action="store", type=int, default=8080)
     op.add_option("-l", "--log", action="store", default=None)
-    print(op.parse_args())
     (opts, args) = op.parse_args()
     logging.basicConfig(filename=opts.log, level=logging.INFO,
                         format='[%(asctime)s] %(levelname).1s %(message)s', datefmt='%Y.%m.%d %H:%M:%S')
