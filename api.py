@@ -34,6 +34,9 @@ GENDERS = {
     MALE: "male",
     FEMALE: "female",
 }
+LEAST_ARGS_ERROR_MESSAGE = "least required pairs: (phone, email), (first_name, last_name), (gender, birthday)"
+
+
 
 
 class BaseField(object):
@@ -107,10 +110,10 @@ class BaseRequest(object):
         token = body['token']
 
     def is_valid(self):
-        names_pair = len(set(['phone', 'email']).intersection(self.request.fields)) == 2
-        gender_birthday_pair = len(set(['first_name', 'last_name']).intersection(self.request.fields)) == 2
-        phone_email_pair = len(set(['gender', 'birthday']).intersection(self.request.fields)) == 2
-        if not any(names_pair, gender_birthday_pair, phone_email_pair):
+        names_pair = len(set(['phone', 'email']).intersection(self.fields)) == 2
+        gender_birthday_pair = len(set(['first_name', 'last_name']).intersection(self.fields)) == 2
+        phone_email_pair = len(set(['gender', 'birthday']).intersection(self.fields)) == 2
+        if not any([names_pair, gender_birthday_pair, phone_email_pair]):
             return False
         return True
 
@@ -152,18 +155,15 @@ class Response(object):
 
     def generate_response(self):
         if self.request.is_valid():
-            response = {"score": 1.0}
-            code = 200
+            response, code = {"score": 1.0}, 200
             return response, code
-        response = "least required pairs: (phone, email), (first_name, last_name), (gender, birthday)"
-        code = 400
+        response, code = LEAST_ARGS_ERROR_MESSAGE, 400
         return response, code
 
 
 # - phone-email
 # - first name - last name
 # - gender - birthday
-
 
 
 def check_auth(request):
