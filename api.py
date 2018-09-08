@@ -195,17 +195,19 @@ class Response(object):
         self.request = request
         self.store = store
 
-    def generate_response(self):
+    def generate_response(self, context):
         if self.request.is_valid():
-            response, code = {"score": self.get_score_from_request()}, 200
+            response, code = {"score": self.get_score_from_request(context)}, 200
             return response, code
         response, code = INSUFFICIENT_ARGS_MESSAGE, 400
         return response, code
 
-    def get_score_from_request(self):
+    def get_score_from_request(self, context):
         phone, email = self.request.phone, self.request.email
         birthday, gender = self.request.birthday, self.request.gender
         first_name, last_name = self.request.first_name, self.request.last_name
+        if 'score' in context:
+            return 42
         return get_score(self.store, phone, email,
                          birthday=birthday, gender=gender,
                          first_name=first_name, last_name=last_name)
@@ -223,12 +225,13 @@ def check_auth(request):
 
 def method_handler(request, context, store):
     request = MethodRequest(request['body'])
-    print "\n!!!", request.__dict__, "\n"
+    if request.is_admin:
+        context['score'] = 42
     if request.method == "online_score":
         r = OnlineScoreRequest(request.arguments)
     elif request.method == "clients_interests":
         pass
-    response, code = Response(r, store).generate_response()
+    response, code = Response(r, store).generate_response(context)
     return response, code
 
 
