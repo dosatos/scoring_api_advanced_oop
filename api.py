@@ -168,10 +168,9 @@ class OnlineScoreRequest(BaseRequest):
         return self.gender is not None
 
     def is_valid(self):
-        names_pair = self.has_first_name and self.has_last_name
-        gender_birthday_pair = self.has_birthday and self.has_gender
-        phone_email_pair = self.has_phone and self.has_email
-        if not any([names_pair, gender_birthday_pair, phone_email_pair]):
+        if not any([self.has_first_name and self.has_last_name,
+                    self.has_birthday and self.has_gender,
+                    self.has_phone and self.has_email]):
             return False
         return True
 
@@ -191,22 +190,25 @@ class MethodRequest(BaseRequest):
 
 
 class Response(object):
-    def __init__(self, request, store):
-        self.request = request
+    def __init__(self, context, store):
+        self.context = context
         self.store = store
 
-    def generate_response(self, context):
-        if self.request.is_valid():
-            response, code = {"score": self.get_score_from_request(context)}, 200
+    def generate_response(self):
+        if self.context['score_request'].is_valid():
+            response, code = {"score": self.get_score_from_request()}, 200
+            return response, code
+        if check_auth(self.context['request']):
+            response, code = "Forbidden", 403
             return response, code
         response, code = INSUFFICIENT_ARGS_MESSAGE, 400
         return response, code
 
-    def get_score_from_request(self, context):
-        phone, email = self.request.phone, self.request.email
-        birthday, gender = self.request.birthday, self.request.gender
-        first_name, last_name = self.request.first_name, self.request.last_name
-        if 'score' in context:
+    def get_score_from_request(self):
+        phone, email = self.context['score_request'].phone, self.context['score_request'].email
+        birthday, gender = self.context['score_request'].birthday, self.context['score_request'].gender
+        first_name, last_name = self.context['score_request'].first_name, self.context['score_request'].last_name
+        if self.context['is_admin']:
             return 42
         return get_score(self.store, phone, email,
                          birthday=birthday, gender=gender,
@@ -224,14 +226,15 @@ def check_auth(request):
 
 
 def method_handler(request, context, store):
-    request = MethodRequest(request['body'])
-    if request.is_admin:
-        context['score'] = 42
-    if request.method == "online_score":
-        r = OnlineScoreRequest(request.arguments)
-    elif request.method == "clients_interests":
+    context.update({
+        'request': MethodRequest(request['body']),
+        'is_admin': False,
+    })
+    if context['request'].method == "online_score":
+        context['score_request'] = OnlineScoreRequest(context['request'].arguments)
+    elif context['request'].method == "clients_interests":
         pass
-    response, code = Response(r, store).generate_response(context)
+    response, code = Response(context, store).generate_response()
     return response, code
 
 
