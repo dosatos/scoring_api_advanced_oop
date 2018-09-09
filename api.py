@@ -268,7 +268,7 @@ def method_handler(request, context, store):
         context['has'] = store['used_method'].has_fields
     elif store['request'].method == "clients_interests":
         store['used_method'] = ClientsInterestsRequest(store['request'].arguments)
-        # context['nclients'] = len(store['used_method'].client_ids)
+        context['nclients'] = len(store['used_method'].client_ids)
 
     response, code = Response(store, store).generate_response()
     return response, code
