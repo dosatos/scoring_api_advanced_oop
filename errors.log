@@ -1,0 +1,11 @@
+[2018.09.09 15:06:51] I Starting server at 8080
+[2018.09.09 15:07:01] I /method/: {"account": "horns&hoofs", "login": "admin", 
+"method": "online_score", "token":
+"55cc9ce545bcd144300fe9efc28e65d415b923ebb6be1e19d2750a2c03e80dd209a27954dca045e5bb12418e7d89b6d718a9e35af", "arguments": {"phone": "79175002040", "email": "stupnikov@otus.ru", "first_name": "Стансилав",
+"last_name": "Ступников", "birthday": "01.01.1990", "gender": 3}} 6059c507ce684af8b8c8b477135c4a1c
+[2018.09.09 15:07:01] I {'code': 200, 'has': [u'first_name', u'last_name', u'gender', u'phone', u'birthday', u'email'], 'response': {'score': 5.0}, 'request_id': '6059c507ce684af8b8c8b477135c4a1c'}
+[2018.09.09 15:07:05] I /method/: {"account": "horns&hoofs", "login": "admin", 
+"method": "online_score", "token":
+"55cc9ce545bcd144300fe9efc28e65d415b923ebb6be1e19d2750a2c03e80dd209a27954dca045e5bb12418e7d89b6d718a9e35af", "arguments": {"phone": "79175002040", "email": "stupnikov@otus.ru", "first_name": "Стансилав",
+"last_name": "Ступников", "birthday": "01.01.1990", "gender": 1}} 3ee6c0a723734f7dbc1707e9b8d0eff6
+[2018.09.09 15:07:05] I {'code': 200, 'has': [u'first_name', u'last_name', u'gender', u'phone', u'birthday', u'email'], 'response': {'score': 5.0}, 'request_id': '3ee6c0a723734f7dbc1707e9b8d0eff6'}

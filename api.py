@@ -52,29 +52,39 @@ class BaseField(object):
 
     def __set__(self, instance, value):
         self.value = value
-        if self.required and self.value == None:
-            raise ValueError("{instance} is a mandatory field".format(instance=instance))
-        if self.nullable and self.value == "":
-            raise ValueError("{instance} cannot be blank".format(instance=instance))
-        self._validate()
 
     def _validate(self):
+        pass
+
+    def _validate_nullable(self):
+        if self.required and self.value is None:
+            log_errors("A field is not nullable")
+            raise ValueError
+
+    def _valdidate_required(self):
         pass
 
 
 
 class CharField(BaseField):
-    def _validate(self):
+    def _validate(self, required, nullable):
+        self._validate_nullable()
+        self._valdidate_required()
+
         if not isinstance(self.value, (str, unicode)):
-            raise TypeError# ("{self} is incorrect".format(self=self))
+            log_errors("{self} is incorrect".format(self=self))
+            raise TypeError
 
 
 
 class ArgumentsField(BaseField):
     def _validate(self):
         if not isinstance(self.value, dict):
-            ## вопрос инструктору: нужно ли логировать подобные мессаджи? вроде бы нет, ну и принтовать тогда не нужно?
-            raise TypeError# ("Incorrect arguments, should be dict".format(self=self))
+            # вопрос инструктору: нужно ли логировать подобные мессаджи
+            # их же может быть очень много и они по большоей части говорят нам об ошибках пользователя АПИ
+            # но всегда ли нам это нужно?
+            log_errors("Incorrect arguments, should be dict".format(self=self))
+            raise TypeError
 
 
 
@@ -83,9 +93,11 @@ class EmailField(CharField):
         is_not_str = not isinstance(self.value, (str, unicode))
         lacks_at_symbol = len(self.value.split("@")) != 2
         if not is_not_str:
-            raise TypeError# ("Incorrect email")
+            log_errors("Incorrect email, TypeError")
+            raise TypeError
         if lacks_at_symbol:
-            raise ValueError# ("Incorrect email")
+            log_errors("Incorrect email, ValueError, missing @")
+            raise ValueError
 
 
 
@@ -96,7 +108,8 @@ class PhoneField(BaseField):
         is_int_or_str_or_unicode = isinstance(self.value, (str, unicode, int))
         if is_int_or_str_or_unicode and length_is_11 and starts_with_7:
             return
-        raise TypeError# ("Incorrect phone")
+        log_errors("Incorrect phone")
+        raise TypeError
 
 
 
@@ -106,7 +119,8 @@ class DateField(BaseField):
         try:
             datetime.datetime.strptime(self.value, '%d.%m.%Y')
         except TypeError:
-            raise TypeError# ("Incorrect data format, should be dd.mm.yyyy")
+            log_errors("Incorrect data format, should be dd.mm.yyyy")
+            raise TypeError
 
 
 
@@ -116,11 +130,13 @@ class BirthDayField(BaseField):
         try:
             datetime.datetime.strptime(self.value, '%d.%m.%Y')
         except TypeError:
-            raise TypeError("Incorrect data format, should be dd.mm.yyyy")
+            log_errors("Incorrect data format, should be dd.mm.yyyy")
+            raise TypeError
 
         seventy_years_ago = datetime.datetime.now() - relativedelta(years=70)
         if datetime.datetime.strptime(self.value, '%d.%m.%Y') < seventy_years_ago:
-            raise TypeError# ("The system supports only 70 year ages only")
+            log_errors("The system supports only 70 year ages only")
+            raise TypeError
 
 
 
@@ -131,14 +147,16 @@ class GenderField(BaseField):
             return
         if self.value in [1, 2]:
             return
-        raise TypeError# ("Wrong gender input. should be 0, 1, 2")
+        log_errors("Wrong gender input. should be 0, 1, 2")
+        raise TypeError
 
 
 
 class ClientIDsField(BaseField):
     def _validate(self):
         if not isinstance(self.value, list):
-            raise TypeError("Wrong client id input")
+            log_errors("Wrong client id input")
+            raise TypeError
 
 
 
@@ -233,9 +251,9 @@ class Response(object):
 
     def generate_response(self):
         used_method = self.store['used_method']
-        # if not check_auth(self.store['request']):
-        #     response, code = "Forbidden", 403
-        if used_method.invalid_fields:
+        if not check_auth(self.store['request']):
+            response, code = "Forbidden", 403
+        elif used_method.invalid_fields:
             response, code = "{}{}".format(INVALID_ARGS_MESSAGE, ", ".join(used_method.invalid_fields)), INVALID_REQUEST
         elif not used_method.is_valid():
             response, code = INSUFFICIENT_ARG_PAIRS_MESSAGE, BAD_REQUEST
@@ -283,7 +301,7 @@ def method_handler(request, context, store):
         store['used_method'] = ClientsInterestsRequest(store['request'].arguments)
         context['nclients'] = len(store['used_method'].client_ids)
 
-    response, code = Response(store, store).generate_response()
+    response, code = Response(store).generate_response()
     return response, code
 
 
@@ -332,11 +350,12 @@ class MainHTTPHandler(BaseHTTPRequestHandler):
         return
 
 
-def log_message(message):
-    if not config:
-        print message
-    else:
+
+def log_errors(message):
+    if opts.log:
         logging.info(message)
+    else:
+        print message
 
 
 if __name__ == "__main__":
