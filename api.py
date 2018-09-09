@@ -132,7 +132,6 @@ class BaseRequest(object):
             try:  # to send the errors to the api users
                 setattr(self, argument, value)
             except Exception as e:
-                print "\n!!!", e, "\n"
                 self.invalid_fields.append(argument)
             if value:
                 self.has_fields.append(argument)
@@ -218,10 +217,6 @@ class Response(object):
         used_method = self.store['used_method']
         # if not check_auth(self.store['request']):
         #     response, code = "Forbidden", 403
-
-        print "\n!!!", used_method.invalid_fields, "\n"
-        print "\n!!!", used_method.has_fields, "\n"
-
         if used_method.invalid_fields:
             response, code = "{}{}".format(INVALID_ARGS_MESSAGE, ", ".join(used_method.invalid_fields)), INVALID_REQUEST
         elif not used_method.is_valid():
