@@ -1,6 +1,6 @@
 # scoring_api_advanced_oop  
 
-This is a scoring json-api that: 
+This is a json-api that: 
  - calculates score based on the arguments passed
  - generates interests based on the client id (random picking from a list)
 
