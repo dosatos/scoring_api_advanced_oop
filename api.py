@@ -4,6 +4,7 @@
 import abc
 import json
 import datetime
+from dateutil.relativedelta import relativedelta
 import logging
 import hashlib
 import uuid
@@ -65,55 +66,72 @@ class BaseField(object):
 class CharField(BaseField):
     def _validate(self):
         if not isinstance(self.value, (str, unicode)):
-            raise TypeError("{self} is incorrect".format(self=self))
+            raise TypeError# ("{self} is incorrect".format(self=self))
 
 
 
 class ArgumentsField(BaseField):
     def _validate(self):
         if not isinstance(self.value, dict):
-            raise TypeError("Incorrect arguments, should be dict".format(self=self))
+            ## вопрос инструктору: нужно ли логировать подобные мессаджи? вроде бы нет, ну и принтовать тогда не нужно?
+            raise TypeError# ("Incorrect arguments, should be dict".format(self=self))
 
 
 
 class EmailField(CharField):
     def _validate(self):
         is_not_str = not isinstance(self.value, (str, unicode))
-        with_not_at = len(self.value.split("@")) != 2
-        wrong_host = len(self.value.split("@")[1].split(".")) != 2
-        if is_not_str and with_not_at and wrong_host:
-            raise TypeError("Incorrect email")
+        lacks_at_symbol = len(self.value.split("@")) != 2
+        if not is_not_str:
+            raise TypeError# ("Incorrect email")
+        if lacks_at_symbol:
+            raise ValueError# ("Incorrect email")
 
 
 
 class PhoneField(BaseField):
     def _validate(self):
-        if not isinstance(self.value, (str, unicode)):
-            raise TypeError("Incorrect phone")
+        length_is_11 = len(self.value) == 11
+        starts_with_7 = str(self.value).startswith("7")
+        is_int_or_str_or_unicode = isinstance(self.value, (str, unicode, int))
+        if is_int_or_str_or_unicode and length_is_11 and starts_with_7:
+            return
+        raise TypeError# ("Incorrect phone")
 
 
 
 class DateField(BaseField):
     def _validate(self):
         datetime.datetime.strptime(self.value, '%d.%m.%Y')
+        try:
+            datetime.datetime.strptime(self.value, '%d.%m.%Y')
+        except TypeError:
+            raise TypeError# ("Incorrect data format, should be dd.mm.yyyy")
 
+
+
+class BirthDayField(BaseField):
+    def _validate(self):
+        datetime.datetime.strptime(self.value, '%d.%m.%Y')
         try:
             datetime.datetime.strptime(self.value, '%d.%m.%Y')
         except TypeError:
             raise TypeError("Incorrect data format, should be dd.mm.yyyy")
 
-
-
-
-class BirthDayField(DateField):
-    pass
+        seventy_years_ago = datetime.datetime.now() - relativedelta(years=70)
+        if datetime.datetime.strptime(self.value, '%d.%m.%Y') < seventy_years_ago:
+            raise TypeError# ("The system supports only 70 year ages only")
 
 
 
 class GenderField(BaseField):
     def _validate(self):
-        if not isinstance(self.value, int):
-            raise TypeError("Wrong gender input")
+        if self.value is None:
+            self.value = 0
+            return
+        if self.value in [1, 2]:
+            return
+        raise TypeError# ("Wrong gender input. should be 0, 1, 2")
 
 
 
@@ -131,7 +149,7 @@ class BaseRequest(object):
         for argument, value in request.items():
             try:  # to send the errors to the api users
                 setattr(self, argument, value)
-            except Exception as e:
+            except (TypeError, ValueError):
                 self.invalid_fields.append(argument)
             if value:
                 self.has_fields.append(argument)
@@ -242,6 +260,7 @@ class Response(object):
         return {i: get_interests(self.store, i) for i in self.store['used_method'].client_ids}
 
 
+
 def check_auth(request):
     if request.is_admin:
         digest = hashlib.sha512(datetime.datetime.now().strftime("%Y%m%d%H") + ADMIN_SALT).hexdigest()
@@ -311,6 +330,13 @@ class MainHTTPHandler(BaseHTTPRequestHandler):
         logging.info(context)
         self.wfile.write(json.dumps(r))
         return
+
+
+def log_message(message):
+    if not config:
+        print message
+    else:
+        logging.info(message)
 
 
 if __name__ == "__main__":
