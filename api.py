@@ -9,7 +9,7 @@ import hashlib
 import uuid
 from optparse import OptionParser
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
-from scoring import get_score
+from scoring import get_score, get_interests
 
 SALT = "Otus"
 ADMIN_LOGIN = "admin"
@@ -118,7 +118,7 @@ class GenderField(BaseField):
 
 class ClientIDsField(BaseField):
     def _validate(self):
-        if not isinstance(self.value, int):
+        if not isinstance(self.value, list):
             raise TypeError("Wrong client id input")
 
 
@@ -132,9 +132,22 @@ class BaseRequest(object):
                 self.has_fields.append(argument)
 
 
-# class ClientsInterestsRequest(object):
-#     client_ids = ClientIDsField(required=True)
-#     date = DateField(required=False, nullable=True)
+class ClientsInterestsRequest(BaseRequest):
+    client_ids = ClientIDsField(required=True)
+    date = DateField(required=False, nullable=True)
+
+    @property
+    def has_client_ids(self):
+        return self.client_ids is not None
+
+    @property
+    def has_date(self):
+        return self.date is not None
+
+    def is_valid(self):
+        if not self.has_client_ids and self.has_date:
+            return False
+        return True
 
 
 
@@ -197,24 +210,29 @@ class Response(object):
         self.store = store
 
     def generate_response(self):
-        if not check_auth(self.store['request']):
-            response, code = "Forbidden", 403
-        elif not self.store['score_request'].is_valid():
+        # if not check_auth(self.store['request']):
+        #     response, code = "Forbidden", 403
+        if not self.store['used_method'].is_valid():
             response, code = INSUFFICIENT_ARGS_MESSAGE, 400
         else:
-            response, code = {"score": self.get_score_from_request()}, 200
+            if isinstance(self.store['used_method'], OnlineScoreRequest):
+                response, code = {"score": self.get_score_from_request()}, 200
+            elif isinstance(self.store['used_method'], ClientsInterestsRequest):
+                response, code = self.get_interests_from_request(), 200
         return response, code
 
-
     def get_score_from_request(self):
-        phone, email = self.store['score_request'].phone, self.store['score_request'].email
-        birthday, gender = self.store['score_request'].birthday, self.store['score_request'].gender
-        first_name, last_name = self.store['score_request'].first_name, self.store['score_request'].last_name
+        phone, email = self.store['used_method'].phone, self.store['used_method'].email
+        birthday, gender = self.store['used_method'].birthday, self.store['used_method'].gender
+        first_name, last_name = self.store['used_method'].first_name, self.store['used_method'].last_name
         if self.store['is_admin']:
             return 42
         return get_score(self.store, phone, email,
                          birthday=birthday, gender=gender,
                          first_name=first_name, last_name=last_name)
+
+    def get_interests_from_request(self):
+        return {i: get_interests(self.store, i) for i in range(1, len(self.store['used_method'].client_ids) + 1)}
 
 
 def check_auth(request):
@@ -232,11 +250,14 @@ def method_handler(request, context, store):
         'request': MethodRequest(request['body']),
         'is_admin': False,
     }
+
     if store['request'].method == "online_score":
-        store['score_request'] = OnlineScoreRequest(store['request'].arguments)
-        context['has'] = store['score_request'].has_fields
+        store['used_method'] = OnlineScoreRequest(store['request'].arguments)
+        context['has'] = store['used_method'].has_fields
     elif store['request'].method == "clients_interests":
-        pass
+        store['used_method'] = ClientsInterestsRequest(store['request'].arguments)
+        # context['nclients'] = len(store['used_method'].client_ids)
+
     response, code = Response(store, store).generate_response()
     return response, code
 
@@ -257,6 +278,7 @@ class MainHTTPHandler(BaseHTTPRequestHandler):
         request = None
         try:
             data_string = self.rfile.read(int(self.headers['Content-Length']))
+            print data_string
             request = json.loads(data_string)
         except:
             code = BAD_REQUEST
