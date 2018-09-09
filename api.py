@@ -244,7 +244,7 @@ class Response(object):
                          first_name=first_name, last_name=last_name)
 
     def get_interests_from_request(self):
-        return {i: get_interests(self.store, i) for i in range(1, len(self.store['used_method'].client_ids) + 1)}
+        return {i: get_interests(self.store, i) for i in self.store['used_method'].client_ids}
 
 
 def check_auth(request):
@@ -262,7 +262,6 @@ def method_handler(request, context, store):
         'request': MethodRequest(request['body']),
         'is_admin': False,
     }
-    print "\n!!!", store['request'], "\n"
     if store['request'].method == "online_score":
         store['used_method'] = OnlineScoreRequest(store['request'].arguments)
         context['has'] = store['used_method'].has_fields
@@ -290,7 +289,6 @@ class MainHTTPHandler(BaseHTTPRequestHandler):
         request = None
         try:
             data_string = self.rfile.read(int(self.headers['Content-Length']))
-            print data_string
             request = json.loads(data_string)
         except:
             code = BAD_REQUEST
