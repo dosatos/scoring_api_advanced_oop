@@ -35,7 +35,8 @@ GENDERS = {
     MALE: "male",
     FEMALE: "female",
 }
-INSUFFICIENT_ARGS_MESSAGE = "least required pairs: (phone, email), (first_name, last_name), (gender, birthday)"
+INSUFFICIENT_ARG_PAIRS_MESSAGE = "least required pairs: (phone, email), (first_name, last_name), (gender, birthday)"
+INVALID_ARGS_MESSAGE = "Invalid arguments: "
 
 
 
@@ -125,11 +126,20 @@ class ClientIDsField(BaseField):
 
 class BaseRequest(object):
     def __init__(self, request):
+        self.invalid_fields = []
         self.has_fields = []
         for argument, value in request.items():
-            setattr(self, argument, value)
+            try:  # to send the errors to the api users
+                setattr(self, argument, value)
+            except Exception as e:
+                print "\n!!!", e, "\n"
+                self.invalid_fields.append(argument)
             if value:
                 self.has_fields.append(argument)
+
+    def is_valid(self):
+        return True
+
 
 
 class ClientsInterestsRequest(BaseRequest):
@@ -143,11 +153,6 @@ class ClientsInterestsRequest(BaseRequest):
     @property
     def has_date(self):
         return self.date is not None
-
-    def is_valid(self):
-        if not self.has_client_ids and self.has_date:
-            return False
-        return True
 
 
 
@@ -210,15 +215,22 @@ class Response(object):
         self.store = store
 
     def generate_response(self):
+        used_method = self.store['used_method']
         # if not check_auth(self.store['request']):
         #     response, code = "Forbidden", 403
-        if not self.store['used_method'].is_valid():
-            response, code = INSUFFICIENT_ARGS_MESSAGE, 400
+
+        print "\n!!!", used_method.invalid_fields, "\n"
+        print "\n!!!", used_method.has_fields, "\n"
+
+        if used_method.invalid_fields:
+            response, code = "{}{}".format(INVALID_ARGS_MESSAGE, ", ".join(used_method.invalid_fields)), INVALID_REQUEST
+        elif not used_method.is_valid():
+            response, code = INSUFFICIENT_ARG_PAIRS_MESSAGE, BAD_REQUEST
         else:
-            if isinstance(self.store['used_method'], OnlineScoreRequest):
-                response, code = {"score": self.get_score_from_request()}, 200
-            elif isinstance(self.store['used_method'], ClientsInterestsRequest):
-                response, code = self.get_interests_from_request(), 200
+            if isinstance(used_method, OnlineScoreRequest):
+                response, code = {"score": self.get_score_from_request()}, OK
+            elif isinstance(used_method, ClientsInterestsRequest):
+                response, code = self.get_interests_from_request(), OK
         return response, code
 
     def get_score_from_request(self):
@@ -250,7 +262,7 @@ def method_handler(request, context, store):
         'request': MethodRequest(request['body']),
         'is_admin': False,
     }
-
+    print "\n!!!", store['request'], "\n"
     if store['request'].method == "online_score":
         store['used_method'] = OnlineScoreRequest(store['request'].arguments)
         context['has'] = store['used_method'].has_fields
