@@ -203,7 +203,7 @@ class ClientsInterestsRequest(BaseRequest):
 
     @property
     def has_date(self):
-        return self.date is not None
+        return self.date is not None and self.date != ""
 
     def is_valid(self):
         return True

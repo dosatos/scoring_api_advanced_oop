@@ -186,12 +186,18 @@ class TestClientInterestRequest:
         request = ClientsInterestsRequest(arguments)
         assert request.has_client_ids is False
 
+    @pytest.mark.parametrize("value", ["12.12.1989"])
+    def test_has_date_field_success(self, value):
+        arguments = {'date': value}
+        request = ClientsInterestsRequest(arguments)
+        assert request.has_date is True
 
+    @pytest.mark.parametrize("value", [""])
+    def test_has_date_field_failure(self, value):
+        arguments = {'date': value}
+        request = ClientsInterestsRequest(arguments)
+        assert request.has_date is False
 
-    # @property
-    # def has_client_ids(self):
-    #     return self.client_ids is not None
-    #
     # @property
     # def has_date(self):
     #     return self.date is not None
