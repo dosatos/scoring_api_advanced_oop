@@ -220,23 +220,23 @@ class OnlineScoreRequest(BaseRequest):
 
     @property
     def has_first_name(self):
-        return self.first_name is not None
+        return self.first_name not in [None, ""]
 
     @property
     def has_last_name(self):
-        return self.last_name is not None
+        return self.last_name not in [None, ""]
 
     @property
     def has_email(self):
-        return self.email is not None
+        return self.email not in [None, ""]
 
     @property
     def has_phone(self):
-        return self.phone is not None
+        return self.phone not in [None, ""]
 
     @property
     def has_birthday(self):
-        return self.birthday is not None
+        return self.birthday not in [None, ""]
 
     @property
     def has_gender(self):

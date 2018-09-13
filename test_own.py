@@ -154,6 +154,77 @@ class TestOnlineScoreRequest:
         request = OnlineScoreRequest(arguments)
         assert 'gender' not in request.invalid_fields
 
+    @pytest.mark.parametrize("value", ["Yeldos", "Dima"])
+    def test_has_first_name_field_success(self, value):
+        arguments = {'first_name': value}
+        request = OnlineScoreRequest(arguments)
+        assert request.has_first_name is True
+
+    @pytest.mark.parametrize("value", ["", None])
+    def test_has_first_name_field_failure(self, value):
+        arguments = {'first_name': value}
+        request = OnlineScoreRequest(arguments)
+        assert request.has_first_name is False
+
+    @pytest.mark.parametrize("value", ["Yeldos", "Dima"])
+    def test_has_last_name_field_success(self, value):
+        arguments = {'last_name': value}
+        request = OnlineScoreRequest(arguments)
+        assert request.has_last_name is True
+
+    @pytest.mark.parametrize("value", ["", None])
+    def test_has_last_name_field_failure(self, value):
+        arguments = {'last_name': value}
+        request = OnlineScoreRequest(arguments)
+        assert request.has_last_name is False
+
+    @pytest.mark.parametrize("value", ["Yeldos@gmail.com", "Dima@yahoo.com"])
+    def test_has_email_field_success(self, value):
+        arguments = {'email': value}
+        request = OnlineScoreRequest(arguments)
+        assert request.has_email is True
+
+    @pytest.mark.parametrize("value", ["", None])
+    def test_has_email_field_failure(self, value):
+        arguments = {'email': value}
+        request = OnlineScoreRequest(arguments)
+        assert request.has_email is False
+
+    @pytest.mark.parametrize("value", ["77059997044", "79069997044"])
+    def test_has_phone_field_success(self, value):
+        arguments = {'phone': value}
+        request = OnlineScoreRequest(arguments)
+        assert request.has_phone is True
+
+    @pytest.mark.parametrize("value", ["", None])
+    def test_has_phone_field_failure(self, value):
+        arguments = {'phone': value}
+        request = OnlineScoreRequest(arguments)
+        assert request.has_phone is False
+
+    @pytest.mark.parametrize("value", ["77059997044", "79069997044"])
+    def test_has_birthday_field_success(self, value):
+        arguments = {'birthday': value}
+        request = OnlineScoreRequest(arguments)
+        assert request.has_birthday is True
+
+    @pytest.mark.parametrize("value", ["", None])
+    def test_has_birthday_field_failure(self, value):
+        arguments = {'birthday': value}
+        request = OnlineScoreRequest(arguments)
+        assert request.has_birthday is False
+
+    @pytest.mark.parametrize("value", ["77059997044", "79069997044"])
+    def test_has_gender_field_success(self, value):
+        arguments = {'gender': value}
+        request = OnlineScoreRequest(arguments)
+        assert request.has_gender is True
+
+
+    # @property
+    # def has_gender(self):
+    #     return self.gender is not None
+
 
 
 class TestClientInterestRequest:
@@ -197,12 +268,5 @@ class TestClientInterestRequest:
         arguments = {'date': value}
         request = ClientsInterestsRequest(arguments)
         assert request.has_date is False
-
-    # @property
-    # def has_date(self):
-    #     return self.date is not None
-    #
-    # def is_valid(self):
-    #     return True
 
 
