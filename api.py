@@ -58,6 +58,8 @@ class BaseField(object):
             self.value = str(value).strip()
         else:
             self.value = value
+        self._validate_required()
+        self._validate_nullable()
         self._validate()
 
     def _validate(self):
@@ -79,12 +81,13 @@ class BaseField(object):
 
 class CharField(BaseField):
     def _validate(self):
-        self._validate_required()
-        self._validate_nullable()
-
         if not isinstance(self.value, (str, unicode)) and self.value is not None:
             log_errors("{self} is incorrect".format(self=self))
             raise TypeError
+        self.additional_validation()
+
+    def additional_validation(self):
+        pass
 
 
 
@@ -97,13 +100,14 @@ class ArgumentsField(BaseField):
 
 
 class EmailField(CharField):
-    def _validate(self):
+    def additional_validation(self):
         is_str = isinstance(self.value, (str, unicode))
         if not is_str:
             log_errors("Incorrect email, TypeError")
             raise TypeError
         lacks_at_symbol = len(self.value.split("@")) != 2
-        if str(self.value).strip() and lacks_at_symbol:
+        print("-------", self.value)
+        if self.value != "" and lacks_at_symbol:
             log_errors("Incorrect email, ValueError, missing @")
             raise ValueError
 
@@ -111,7 +115,7 @@ class EmailField(CharField):
 
 class PhoneField(BaseField):
     def _validate(self):
-        if isinstance(self.value, (str, unicode, int)):
+        if isinstance(self.value, (str, unicode, int)) or self.value == "":
             length_is_11 = len(self.value) == 11
             starts_with_7 = str(self.value).startswith("7")
             if length_is_11 and starts_with_7:

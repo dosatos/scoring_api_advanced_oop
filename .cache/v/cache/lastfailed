@@ -1,1 +1,3 @@
-{}
+{
+  "test_own.py::TestOnlineScoreRequest::()::test_email_field_is_required": true
+}
