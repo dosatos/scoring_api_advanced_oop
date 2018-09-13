@@ -5,7 +5,7 @@ import json
 import urllib2
 
 import api
-from api import ADMIN_LOGIN, ADMIN_SALT, MethodRequest, OnlineScoreRequest
+from api import ADMIN_LOGIN, ADMIN_SALT, MethodRequest, OnlineScoreRequest, ClientsInterestsRequest
 
 
 @pytest.fixture
@@ -156,15 +156,20 @@ class TestOnlineScoreRequest:
 
 
 
-# class TestClientInterestRequest:
-#
-#     @pytest.mark.parametrize("first_name", [(""), (" "), ])
-#     def test_first_name_field_can_be_nulled(self, first_name):
-#         arguments = {'first_name': first_name}
-#         request = OnlineScoreRequest(arguments)
-#         assert 'first_name' not in request.invalid_fields
-#
-#     def test_first_name_field_is_required(self):
-#         arguments = {}
-#         request = OnlineScoreRequest(arguments)
-#         assert 'first_name' not in request.invalid_fields
+class TestClientInterestRequest:
+
+    def test_client_ids_field_is_required(self):
+        arguments = {}
+        request = ClientsInterestsRequest(arguments)
+        assert 'client_ids' in request.invalid_fields
+
+    @pytest.mark.parametrize("date", [(""), (" "), ])
+    def test_date_field_can_be_nulled(self, date):
+        arguments = {'date': date}
+        request = ClientsInterestsRequest(arguments)
+        assert 'date' not in request.invalid_fields
+
+    def test_date_field_is_required(self):
+        arguments = {}
+        request = ClientsInterestsRequest(arguments)
+        assert 'date' not in request.invalid_fields
