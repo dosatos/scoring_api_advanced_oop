@@ -245,7 +245,7 @@ class OnlineScoreRequest(BaseRequest):
 
 
 class MethodRequest(BaseRequest):
-    account = CharField(required=True, nullable=False)
+    account = CharField(required=False, nullable=True)
     login = CharField(required=True, nullable=True)
     token = CharField(required=True, nullable=True)
     arguments = ArgumentsField(required=True, nullable=True)
