@@ -172,7 +172,7 @@ class BaseRequest(object):
                                 and not key.startswith("has_")]
         for attribute, field in class_attribute_fields:
             try:
-                setattr(self, attribute, data[attribute])
+                setattr(self, attribute, data.get(attribute, None))
             except (TypeError, ValueError):
                 # to send the errors to the api users
                 self.invalid_fields.append(attribute)
