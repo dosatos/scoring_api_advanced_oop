@@ -174,7 +174,7 @@ class BaseRequest(object):
                                 and not key.startswith("has_")]
         for attribute, field in class_attribute_fields:
             try:
-                # if attribute != "login":
+                # if attribute != "method":
                 #     continue
                 # print "Started for: ", attribute
                 setattr(self, attribute, data.get(attribute, None))
