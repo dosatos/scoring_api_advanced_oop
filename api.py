@@ -55,7 +55,7 @@ class BaseField(object):
 
     def __set__(self, instance, value):
 
-        # self._validate_required(value)
+        self._validate_required(value)
         self._validate_nullable(value)
 
         if value is not None and isinstance(self.value, (str, unicode)):
@@ -68,12 +68,12 @@ class BaseField(object):
         pass
 
     def _validate_required(self, value):
-        if value is None:
+        if self.required and value is None:
             log_errors("A required field is missing")
             raise ValueError
 
     def _validate_nullable(self, value):
-        if not self.nullable and self.value == "":
+        if not self.nullable and isinstance(value, (str, unicode)) and value in ["", " "]:
             log_errors("A field is not nullable")
             raise ValueError
 
