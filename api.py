@@ -123,6 +123,8 @@ class ArgumentsField(BaseField):
 
 class DateField(BaseField):
     def _validate(self):
+        if not self.value:
+            return
         try:
             datetime.datetime.strptime(self.value, '%d.%m.%Y')
         except TypeError:

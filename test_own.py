@@ -127,22 +127,22 @@ class TestOnlineScoreRequest:
         request = OnlineScoreRequest(arguments)
         assert 'phone' not in request.invalid_fields
 
-    # def test_phone_field_is_required(self):
-    #     arguments = {}
-    #     request = OnlineScoreRequest(arguments)
-    #     assert 'phone' not in request.invalid_fields
+    def test_phone_field_is_required(self):
+        arguments = {}
+        request = OnlineScoreRequest(arguments)
+        assert 'phone' not in request.invalid_fields
 
-    # @pytest.mark.parametrize("birthday", [(""), (" "), ])
-    # def test_birthday_field_can_be_nulled(self, birthday):
-    #     arguments = {'birthday': birthday}
-    #     request = OnlineScoreRequest(arguments)
-    #     assert 'birthday' not in request.invalid_fields
-    #
+    @pytest.mark.parametrize("birthday", [(""), (" "), ])
+    def test_birthday_field_can_be_nulled(self, birthday):
+        arguments = {'birthday': birthday}
+        request = OnlineScoreRequest(arguments)
+        assert 'birthday' not in request.invalid_fields
+
     # def test_birthday_field_is_required(self):
     #     arguments = {}
     #     request = OnlineScoreRequest(arguments)
     #     assert 'birthday' not in request.invalid_fields
-    #
+
     # @pytest.mark.parametrize("gender", [(""), (" "), ])
     # def test_gender_field_can_be_nulled(self, gender):
     #     arguments = {'gender': gender}
