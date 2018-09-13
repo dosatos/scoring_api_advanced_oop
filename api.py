@@ -12,6 +12,7 @@ from optparse import OptionParser
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 from scoring import get_score, get_interests
 
+
 SALT = "Otus"
 ADMIN_LOGIN = "admin"
 ADMIN_SALT = "42"
@@ -60,13 +61,12 @@ class BaseField(object):
         pass
 
     def _validate_required(self):
-        if self.is_required and self.value is None:
+        if self.required and self.value is None:
             log_errors("A required field is missing")
             raise ValueError
 
     def _validate_nullable(self):
-        print "!!!"*10, self.is_nullable
-        if not self.is_nullable and self.value is "":
+        if not self.nullable and self.value is "":
             log_errors("A field is not nullable")
             raise ValueError
 
@@ -76,6 +76,7 @@ class CharField(BaseField):
     def _validate(self):
         self._validate_required()
         self._validate_nullable()
+
 
         if not isinstance(self.value, (str, unicode)):
             log_errors("{self} is incorrect".format(self=self))
@@ -163,18 +164,20 @@ class BaseRequest(object):
     def __init__(self, data):
         self.invalid_fields = []
         self.has_fields = []
-        available_fields = [(key, field) for key, field in self.__class__.__dict__.iteritems()
+        class_attribute_fields = [(key, field) for key, field in self.__class__.__dict__.iteritems()
                             if not key.startswith("__")
                                 and not key.startswith("is_")
                                 and not key.startswith("has_")]
-        for attribute, field in available_fields:
+        for attribute, field in class_attribute_fields:
             try:
-                self.__dict__[attribute] = data[attribute]
+                setattr(self, attribute, data[attribute])
+
             except (TypeError, ValueError):
                 # to send the errors to the api users
                 self.invalid_fields.append(attribute)
             if attribute in data and data[attribute]:
                 self.has_fields.append(attribute)
+
 
     def is_valid(self):
         pass
@@ -359,10 +362,15 @@ class MainHTTPHandler(BaseHTTPRequestHandler):
 
 
 def log_errors(message):
-    if opts.log:
-        logging.info(message)
-    else:
-        print message
+    print message
+    # op = OptionParser()
+    # op.add_option("-p", "--port", action="store", type=int, default=8080)
+    # op.add_option("-l", "--log", action="store", default=None)
+    # (opts, args) = op.parse_args()
+    # if opts.log:
+    #     logging.info(message)
+    # else:
+    #     print message
 
 
 if __name__ == "__main__":
