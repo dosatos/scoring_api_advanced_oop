@@ -66,13 +66,11 @@ class BaseField(object):
         pass
 
     def _validate_required(self):
-        # print "required: ", self.required, self.value
         if self.required and self.value is None:
             log_errors("A required field is missing")
             raise ValueError
 
     def _validate_nullable(self):
-        # print "nullable: ", self.nullable, self.value
         if not self.nullable and self.value is "":
             log_errors("A field is not nullable")
             raise ValueError
@@ -176,14 +174,10 @@ class BaseRequest(object):
                                     and isinstance(field, BaseField)]
         for attribute, field in class_attribute_fields:
             try:
-                # if attribute != "method":
-                #     continue
-                # print "Started for: ", attribute
                 setattr(self, attribute, data.get(attribute, None))
             except (TypeError, ValueError), e:
                 # to send the errors to the api users
                 self.invalid_fields.append(attribute)
-                # print(self.invalid_fields)
             if attribute in data and data[attribute]:
                 self.has_fields.append(attribute)
 
