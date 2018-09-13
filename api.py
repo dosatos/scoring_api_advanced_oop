@@ -180,7 +180,6 @@ class BaseRequest(object):
                 setattr(self, attribute, data.get(attribute, None))
             except (TypeError, ValueError), e:
                 # to send the errors to the api users
-                # print("!!!", attribute, e)
                 self.invalid_fields.append(attribute)
                 # print(self.invalid_fields)
             if attribute in data and data[attribute]:

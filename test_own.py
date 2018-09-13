@@ -5,7 +5,7 @@ import json
 import urllib2
 
 import api
-from api import ADMIN_LOGIN, ADMIN_SALT, MethodRequest
+from api import ADMIN_LOGIN, ADMIN_SALT, MethodRequest, OnlineScoreRequest
 
 
 @pytest.fixture
@@ -30,35 +30,30 @@ class TestMethodRequest:
 
     @pytest.mark.parametrize("account_name", [(""), (" "),])
     def test_account_field_can_be_nulled(self, account_name):
-        data = {}
-        data['account'] = account_name
+        data = {'account': account_name}
         request = MethodRequest(data)
         assert 'account' not in request.invalid_fields
 
 
     def test_account_field_is_not_required(self):
         data = {}
-        data['account'] = None
         request = MethodRequest(data)
         assert 'account' not in request.invalid_fields
 
     @pytest.mark.parametrize("login_name", [(""), (" "), ])
     def test_login_field_can_be_nulled(self, login_name):
-        data = {}
-        data['login'] = login_name
+        data = {'login': login_name}
         request = MethodRequest(data)
         assert 'login' not in request.invalid_fields
 
     def test_login_field_is_required(self):
         data = {}
-        data['login'] = None
         request = MethodRequest(data)
         assert 'login' in request.invalid_fields
 
     @pytest.mark.parametrize("token_name", [(""), (" "), ])
     def test_token_field_can_be_nulled(self, token_name):
-        data = {}
-        data['token'] = token_name
+        data = {'token': token_name}
         request = MethodRequest(data)
         assert 'token' not in request.invalid_fields
 
@@ -69,8 +64,7 @@ class TestMethodRequest:
 
     @pytest.mark.parametrize("arguments_name", [({})])
     def test_arguments_field_can_be_nulled(self, arguments_name):
-        data = {}
-        data['arguments'] = arguments_name
+        data = {'arguments': arguments_name}
         request = MethodRequest(data)
         assert 'arguments' not in request.invalid_fields
 
@@ -81,8 +75,7 @@ class TestMethodRequest:
 
     @pytest.mark.parametrize("method_name", [(""), (" "), ])
     def test_method_field_cannot_be_nulled(self, method_name):
-        data = {}
-        data['method'] = method_name
+        data = {'method': method_name}
         request = MethodRequest(data)
         assert 'method' in request.invalid_fields
 
@@ -91,4 +84,95 @@ class TestMethodRequest:
         request = MethodRequest(data)
         assert 'method' in request.invalid_fields
 
-# method = CharField(required=True, nullable=False)
+
+class TestOnlineScoreRequest:
+
+    @pytest.mark.parametrize("first_name", [(""), (" "), ])
+    def test_first_name_field_can_be_nulled(self, first_name):
+        arguments = {'first_name': first_name}
+        request = MethodRequest(arguments)
+        assert 'first_name' not in request.invalid_fields
+
+    def test_first_name_field_is_required(self):
+        arguments = {}
+        request = MethodRequest(arguments)
+        assert 'first_name' not in request.invalid_fields
+
+    @pytest.mark.parametrize("last_name", [(""), (" "), ])
+    def test_last_name_field_can_be_nulled(self, last_name):
+        arguments = {'last_name': last_name}
+        request = MethodRequest(arguments)
+        assert 'last_name' not in request.invalid_fields
+
+    def test_last_name_field_is_required(self):
+        arguments = {}
+        request = MethodRequest(arguments)
+        assert 'last_name' not in request.invalid_fields
+
+    @pytest.mark.parametrize("last_name", [(""), (" "), ])
+    def test_last_name_field_can_be_nulled(self, last_name):
+        arguments = {'last_name': last_name}
+        request = MethodRequest(arguments)
+        assert 'last_name' not in request.invalid_fields
+
+    def test_last_name_field_is_required(self):
+        arguments = {}
+        request = MethodRequest(arguments)
+        assert 'last_name' not in request.invalid_fields
+
+    @pytest.mark.parametrize("last_name", [(""), (" "), ])
+    def test_last_name_field_can_be_nulled(self, last_name):
+        arguments = {'last_name': last_name}
+        request = MethodRequest(arguments)
+        assert 'last_name' not in request.invalid_fields
+
+    def test_last_name_field_is_required(self):
+        arguments = {}
+        request = MethodRequest(arguments)
+        assert 'last_name' not in request.invalid_fields
+
+    @pytest.mark.parametrize("email", [(""), (" "), ])
+    def test_email_field_can_be_nulled(self, email):
+        arguments = {'email': email}
+        request = MethodRequest(arguments)
+        assert 'email' not in request.invalid_fields
+
+    def test_email_field_is_required(self):
+        arguments = {}
+        request = MethodRequest(arguments)
+        assert 'email' not in request.invalid_fields
+
+    @pytest.mark.parametrize("phone", [(""), (" "), ])
+    def test_phone_field_can_be_nulled(self, phone):
+        arguments = {'phone': phone}
+        request = MethodRequest(arguments)
+        assert 'phone' not in request.invalid_fields
+
+    def test_phone_field_is_required(self):
+        arguments = {}
+        request = MethodRequest(arguments)
+        assert 'phone' not in request.invalid_fields
+
+    @pytest.mark.parametrize("birthday", [(""), (" "), ])
+    def test_birthday_field_can_be_nulled(self, birthday):
+        arguments = {'birthday': birthday}
+        request = MethodRequest(arguments)
+        assert 'birthday' not in request.invalid_fields
+
+    def test_birthday_field_is_required(self):
+        arguments = {}
+        request = MethodRequest(arguments)
+        assert 'birthday' not in request.invalid_fields
+
+    @pytest.mark.parametrize("gender", [(""), (" "), ])
+    def test_gender_field_can_be_nulled(self, gender):
+        arguments = {'gender': gender}
+        request = MethodRequest(arguments)
+        assert 'gender' not in request.invalid_fields
+
+    def test_gender_field_is_required(self):
+        arguments = {}
+        request = MethodRequest(arguments)
+        assert 'gender' not in request.invalid_fields
+
+
