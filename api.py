@@ -82,9 +82,6 @@ class CharField(BaseField):
 class ArgumentsField(BaseField):
     def _validate(self):
         if not isinstance(self.value, dict):
-            # вопрос инструктору: нужно ли логировать подобные мессаджи
-            # их же может быть очень много и они по большоей части говорят нам об ошибках пользователя АПИ
-            # но всегда ли нам это нужно?
             log_errors("Incorrect arguments, should be dict".format(self=self))
             raise TypeError
 
