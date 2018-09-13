@@ -172,9 +172,8 @@ class BaseRequest(object):
         self.invalid_fields = []
         self.has_fields = []
         class_attribute_fields = [(key, field) for key, field in self.__class__.__dict__.iteritems()
-                            if not key.startswith("__")
-                                and not key.startswith("is_")
-                                and not key.startswith("has_")]
+                                    if not key.startswith("__")
+                                    and isinstance(field, BaseField)]
         for attribute, field in class_attribute_fields:
             try:
                 # if attribute != "method":
