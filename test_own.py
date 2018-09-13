@@ -1,10 +1,6 @@
 import pytest
 import hashlib
 
-import json
-import urllib2
-
-import api
 from api import ADMIN_LOGIN, ADMIN_SALT, MethodRequest, OnlineScoreRequest, ClientsInterestsRequest
 
 
@@ -25,6 +21,8 @@ def generate_token(is_admin=False):
         return hashlib.sha512(datetime.datetime.now().strftime("%Y%m%d%H") + ADMIN_SALT).hexdigest()
     else:
         return hashlib.sha512(request.account + request.login + SALT).hexdigest()
+
+
 
 class TestMethodRequest:
 
@@ -83,6 +81,18 @@ class TestMethodRequest:
         data = {}
         request = MethodRequest(data)
         assert 'method' in request.invalid_fields
+
+    @pytest.mark.parametrize("value", [ADMIN_LOGIN])
+    def test_is_admin_property_success(self, value):
+        data = {'login': value}
+        request = MethodRequest(data)
+        assert request.is_admin is True
+
+    @pytest.mark.parametrize("value", ["Yeldos123"])
+    def test_is_admin_property_failure(self, value):
+        data = {'login': value}
+        request = MethodRequest(data)
+        assert request.is_admin is False
 
 
 
@@ -221,11 +231,6 @@ class TestOnlineScoreRequest:
         assert request.has_gender is True
 
 
-    # @property
-    # def has_gender(self):
-    #     return self.gender is not None
-
-
 
 class TestClientInterestRequest:
 
@@ -269,4 +274,8 @@ class TestClientInterestRequest:
         request = ClientsInterestsRequest(arguments)
         assert request.has_date is False
 
+
+
+class TestResponse:
+    pass
 
