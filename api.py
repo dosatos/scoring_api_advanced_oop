@@ -101,23 +101,23 @@ class EmailField(CharField):
 
 
 
+class PhoneField(CharField):
+    def additional_validation(self):
+        if self.value:
+            length_is_11 = len(self.value) == 11
+            starts_with_7 = str(self.value).startswith("7")
+            if length_is_11 and starts_with_7:
+                return
+            log_errors("Incorrect phone")
+            raise TypeError
+
+
+
 class ArgumentsField(BaseField):
     def _validate(self):
         if not isinstance(self.value, dict):
             log_errors("Incorrect arguments, should be dict".format(self=self))
             raise TypeError
-
-
-
-class PhoneField(BaseField):
-    def _validate(self):
-        if isinstance(self.value, (str, unicode, int)) or self.value == "":
-            length_is_11 = len(self.value) == 11
-            starts_with_7 = str(self.value).startswith("7")
-            if length_is_11 and starts_with_7:
-                return
-        log_errors("Incorrect phone")
-        raise TypeError
 
 
 
