@@ -55,7 +55,19 @@ class TestMethodRequest:
         request = MethodRequest(data)
         assert 'login' in request.invalid_fields
 
-# login = CharField(required=True, nullable=True)
+    @pytest.mark.parametrize("token_name", [(""), (" "), ])
+    def test_token_field_can_be_nulled(self, token_name):
+        data = {}
+        data['token'] = token_name
+        request = MethodRequest(data)
+        assert 'token' not in request.invalid_fields
+
+    # def test_login_field_is_required(self):
+    #     data = {}
+    #     data['login'] = None
+    #     request = MethodRequest(data)
+    #     assert 'login' in request.invalid_fields
+
 # token = CharField(required=True, nullable=True)
 # arguments = ArgumentsField(required=True, nullable=True)
 # method = CharField(required=True, nullable=False)
