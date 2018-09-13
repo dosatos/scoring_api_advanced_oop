@@ -1,7 +1,7 @@
 import pytest
 import hashlib
 
-from api import ADMIN_LOGIN, ADMIN_SALT, MethodRequest, OnlineScoreRequest, ClientsInterestsRequest
+from api import ADMIN_LOGIN, ADMIN_SALT, SALT, MethodRequest, OnlineScoreRequest, ClientsInterestsRequest, Response
 
 
 @pytest.fixture
@@ -16,8 +16,8 @@ def data():
     return data
 
 
-def generate_token(is_admin=False):
-    if is_admin:
+def generate_token(request):
+    if request.is_admin:
         return hashlib.sha512(datetime.datetime.now().strftime("%Y%m%d%H") + ADMIN_SALT).hexdigest()
     else:
         return hashlib.sha512(request.account + request.login + SALT).hexdigest()
@@ -276,6 +276,25 @@ class TestClientInterestRequest:
 
 
 
-class TestResponse:
-    pass
+# class TestResponse:
+#
+#     def test_generate_response_success(self, data):
+#         data['token'] = generate_token(MethodRequest(data))
+#         store = {
+#             "request": MethodRequest(data),
+#             "is_admin": False,
+#             "used_method": OnlineScoreRequest(data),
+#         }
+#         r = OnlineScoreRequest(data)
+#
+#         assert [r.has_first_name and r.has_last_name,
+#          r.has_birthday and r.has_gender,
+#          r.has_phone and r.has_email] == 1
+#
+#         # response, code = Response(store).generate_response()
+#         # assert (response, code) is True
+#
+#
+#     def test_generate_response_failure(self):
+#         pass
 

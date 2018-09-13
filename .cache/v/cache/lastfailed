@@ -1,1 +1,6 @@
-{}
+{
+  "test_own.py::TestClientInterestRequest::()::test_client_ids_field_is_required": true, 
+  "test_own.py::TestMethodRequest::()::test_login_field_is_required": true, 
+  "test_own.py::TestMethodRequest::()::test_method_field_cannot_be_nulled[]": true, 
+  "test_own.py::TestMethodRequest::()::test_token_field_is_required": true
+}
