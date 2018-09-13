@@ -42,8 +42,10 @@ INVALID_ARGS_MESSAGE = "Invalid arguments: "
 
 
 class BaseField(object):
+
+    value = None
+
     def __init__(self, required=False, nullable=True):
-        self.value = None
         self.required = required
         self.nullable = nullable
 
@@ -61,7 +63,7 @@ class BaseField(object):
             log_errors("A field is not nullable")
             raise ValueError
 
-    def _valdidate_required(self):
+    def _validate_required(self):
         pass
 
 
@@ -69,7 +71,7 @@ class BaseField(object):
 class CharField(BaseField):
     def _validate(self, required, nullable):
         self._validate_nullable()
-        self._valdidate_required()
+        self._validate_required()
 
         if not isinstance(self.value, (str, unicode)):
             log_errors("{self} is incorrect".format(self=self))
@@ -90,11 +92,11 @@ class ArgumentsField(BaseField):
 
 class EmailField(CharField):
     def _validate(self):
-        is_not_str = not isinstance(self.value, (str, unicode))
-        lacks_at_symbol = len(self.value.split("@")) != 2
-        if not is_not_str:
+        is_str = isinstance(self.value, (str, unicode))
+        if not is_str:
             log_errors("Incorrect email, TypeError")
             raise TypeError
+        lacks_at_symbol = len(self.value.split("@")) != 2
         if lacks_at_symbol:
             log_errors("Incorrect email, ValueError, missing @")
             raise ValueError
@@ -103,11 +105,11 @@ class EmailField(CharField):
 
 class PhoneField(BaseField):
     def _validate(self):
-        length_is_11 = len(self.value) == 11
-        starts_with_7 = str(self.value).startswith("7")
-        is_int_or_str_or_unicode = isinstance(self.value, (str, unicode, int))
-        if is_int_or_str_or_unicode and length_is_11 and starts_with_7:
-            return
+        if isinstance(self.value, (str, unicode, int)):
+            length_is_11 = len(self.value) == 11
+            starts_with_7 = str(self.value).startswith("7")
+            if length_is_11 and starts_with_7:
+                return
         log_errors("Incorrect phone")
         raise TypeError
 
@@ -115,24 +117,20 @@ class PhoneField(BaseField):
 
 class DateField(BaseField):
     def _validate(self):
-        datetime.datetime.strptime(self.value, '%d.%m.%Y')
         try:
             datetime.datetime.strptime(self.value, '%d.%m.%Y')
         except TypeError:
             log_errors("Incorrect data format, should be dd.mm.yyyy")
             raise TypeError
+        self._validate_age(70)
+
+    def _validate_age(self, age):
+        pass
 
 
 
-class BirthDayField(BaseField):
-    def _validate(self):
-        datetime.datetime.strptime(self.value, '%d.%m.%Y')
-        try:
-            datetime.datetime.strptime(self.value, '%d.%m.%Y')
-        except TypeError:
-            log_errors("Incorrect data format, should be dd.mm.yyyy")
-            raise TypeError
-
+class BirthDayField(DateField):
+    def _validate_age(self, age):
         seventy_years_ago = datetime.datetime.now() - relativedelta(years=70)
         if datetime.datetime.strptime(self.value, '%d.%m.%Y') < seventy_years_ago:
             log_errors("The system supports only 70 year ages only")
@@ -173,7 +171,7 @@ class BaseRequest(object):
                 self.has_fields.append(argument)
 
     def is_valid(self):
-        return True
+        pass
 
 
 
@@ -188,6 +186,9 @@ class ClientsInterestsRequest(BaseRequest):
     @property
     def has_date(self):
         return self.date is not None
+
+    def is_valid(self):
+        return True
 
 
 
