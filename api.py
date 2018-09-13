@@ -199,7 +199,7 @@ class ClientsInterestsRequest(BaseRequest):
 
     @property
     def has_client_ids(self):
-        return self.client_ids is not None
+        return self.client_ids is not None and self.client_ids != []
 
     @property
     def has_date(self):

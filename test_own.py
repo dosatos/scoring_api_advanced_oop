@@ -173,3 +173,30 @@ class TestClientInterestRequest:
         arguments = {}
         request = ClientsInterestsRequest(arguments)
         assert 'date' not in request.invalid_fields
+
+    @pytest.mark.parametrize("value", [[1, 2, 3], [1]])
+    def test_has_client_ids_field_success(self, value):
+        arguments = {'client_ids': value}
+        request = ClientsInterestsRequest(arguments)
+        assert request.has_client_ids is True
+
+    @pytest.mark.parametrize("value", [[]])
+    def test_has_client_ids_field_failure(self, value):
+        arguments = {'client_ids': value}
+        request = ClientsInterestsRequest(arguments)
+        assert request.has_client_ids is False
+
+
+
+    # @property
+    # def has_client_ids(self):
+    #     return self.client_ids is not None
+    #
+    # @property
+    # def has_date(self):
+    #     return self.date is not None
+    #
+    # def is_valid(self):
+    #     return True
+
+
