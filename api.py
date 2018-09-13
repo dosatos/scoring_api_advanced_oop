@@ -82,7 +82,7 @@ class BaseField(object):
 class CharField(BaseField):
     def _validate(self):
         if not isinstance(self.value, (str, unicode)) and self.value is not None:
-            log_errors("{self} is incorrect".format(self=self))
+            log_errors("{self.__class__.__name__} is incorrect".format(self=self))
             raise TypeError
         self.additional_validation()
 
@@ -91,25 +91,21 @@ class CharField(BaseField):
 
 
 
+class EmailField(CharField):
+    def additional_validation(self):
+        if self.value:
+            lacks_at_symbol = len(self.value.split("@")) != 2
+            if lacks_at_symbol:
+                log_errors("Incorrect email, ValueError, missing @")
+                raise ValueError
+
+
+
 class ArgumentsField(BaseField):
     def _validate(self):
         if not isinstance(self.value, dict):
             log_errors("Incorrect arguments, should be dict".format(self=self))
             raise TypeError
-
-
-
-class EmailField(CharField):
-    def additional_validation(self):
-        is_str = isinstance(self.value, (str, unicode))
-        if not is_str:
-            log_errors("Incorrect email, TypeError")
-            raise TypeError
-        lacks_at_symbol = len(self.value.split("@")) != 2
-        print("-------", self.value)
-        if self.value != "" and lacks_at_symbol:
-            log_errors("Incorrect email, ValueError, missing @")
-            raise ValueError
 
 
 
