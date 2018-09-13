@@ -54,24 +54,28 @@ class BaseField(object):
 
     def __set__(self, instance, value):
         self.value = value
+        self._validate()
 
     def _validate(self):
         pass
 
-    def _validate_nullable(self):
-        if self.required and self.value is None:
-            log_errors("A field is not nullable")
+    def _validate_required(self):
+        if self.is_required and self.value is None:
+            log_errors("A required field is missing")
             raise ValueError
 
-    def _validate_required(self):
-        pass
+    def _validate_nullable(self):
+        print "!!!"*10, self.is_nullable
+        if not self.is_nullable and self.value is "":
+            log_errors("A field is not nullable")
+            raise ValueError
 
 
 
 class CharField(BaseField):
-    def _validate(self, required, nullable):
-        self._validate_nullable()
+    def _validate(self):
         self._validate_required()
+        self._validate_nullable()
 
         if not isinstance(self.value, (str, unicode)):
             log_errors("{self} is incorrect".format(self=self))
@@ -156,16 +160,21 @@ class ClientIDsField(BaseField):
 
 
 class BaseRequest(object):
-    def __init__(self, request):
+    def __init__(self, data):
         self.invalid_fields = []
         self.has_fields = []
-        for argument, value in request.items():
-            try:  # to send the errors to the api users
-                setattr(self, argument, value)
+        available_fields = [(key, field) for key, field in self.__class__.__dict__.iteritems()
+                            if not key.startswith("__")
+                                and not key.startswith("is_")
+                                and not key.startswith("has_")]
+        for attribute, field in available_fields:
+            try:
+                self.__dict__[attribute] = data[attribute]
             except (TypeError, ValueError):
-                self.invalid_fields.append(argument)
-            if value:
-                self.has_fields.append(argument)
+                # to send the errors to the api users
+                self.invalid_fields.append(attribute)
+            if attribute in data and data[attribute]:
+                self.has_fields.append(attribute)
 
     def is_valid(self):
         pass
@@ -231,7 +240,7 @@ class OnlineScoreRequest(BaseRequest):
 
 
 class MethodRequest(BaseRequest):
-    account = CharField(required=False, nullable=True)
+    account = CharField(required=True, nullable=False)
     login = CharField(required=True, nullable=True)
     token = CharField(required=True, nullable=True)
     arguments = ArgumentsField(required=True, nullable=True)
@@ -244,7 +253,7 @@ class MethodRequest(BaseRequest):
 
 
 class Response(object):
-    def __init__(self, context, store):
+    def __init__(self, store):
         self.store = store
 
     def generate_response(self):
