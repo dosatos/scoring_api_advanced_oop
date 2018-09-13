@@ -103,7 +103,7 @@ class EmailField(CharField):
             log_errors("Incorrect email, TypeError")
             raise TypeError
         lacks_at_symbol = len(self.value.split("@")) != 2
-        if lacks_at_symbol:
+        if str(self.value).strip() and lacks_at_symbol:
             log_errors("Incorrect email, ValueError, missing @")
             raise ValueError
 
