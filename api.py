@@ -54,7 +54,7 @@ class BaseField(object):
         return self.value
 
     def __set__(self, instance, value):
-        if isinstance(self.value, (str, unicode)):
+        if value is not None and isinstance(self.value, (str, unicode)):
             self.value = str(value).strip()
         else:
             self.value = value
@@ -64,11 +64,13 @@ class BaseField(object):
         pass
 
     def _validate_required(self):
+        # print "required: ", self.required, self.value
         if self.required and self.value is None:
             log_errors("A required field is missing")
             raise ValueError
 
     def _validate_nullable(self):
+        # print "nullable: ", self.nullable, self.value
         if not self.nullable and self.value is "":
             log_errors("A field is not nullable")
             raise ValueError
@@ -80,7 +82,7 @@ class CharField(BaseField):
         self._validate_required()
         self._validate_nullable()
 
-        if not isinstance(self.value, (str, unicode)):
+        if not isinstance(self.value, (str, unicode)) and self.value is not None:
             log_errors("{self} is incorrect".format(self=self))
             raise TypeError
 
@@ -172,11 +174,17 @@ class BaseRequest(object):
                                 and not key.startswith("has_")]
         for attribute, field in class_attribute_fields:
             try:
+                print()
+                print()
+                # if attribute != "login":
+                #     continue
+                # print "Started for: ", attribute
                 setattr(self, attribute, data.get(attribute, None))
-            except (TypeError, ValueError):
+            except (TypeError, ValueError), e:
                 # to send the errors to the api users
+                # print("!!!", attribute, e)
                 self.invalid_fields.append(attribute)
-                print(self.invalid_fields)
+                # print(self.invalid_fields)
             if attribute in data and data[attribute]:
                 self.has_fields.append(attribute)
 
