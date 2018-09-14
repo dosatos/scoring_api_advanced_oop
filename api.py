@@ -86,12 +86,11 @@ class CharField(BaseField):
             raise TypeError
         self.additional_validation()
 
-    def additional_validation(self):
-        pass
 
 
 class EmailField(CharField):
-    def additional_validation(self):
+    def _validate(self):
+        super(EmailField, self)._validate()
         if self.value:
             lacks_at_symbol = len(self.value.split("@")) != 2
             if lacks_at_symbol:
@@ -101,7 +100,8 @@ class EmailField(CharField):
 
 
 class PhoneField(CharField):
-    def additional_validation(self):
+    def _validate(self):
+        super(PhoneField, self)._validate()
         if self.value:
             length_is_11 = len(self.value) == 11
             starts_with_7 = str(self.value).startswith("7")
@@ -129,15 +129,14 @@ class DateField(BaseField):
         except TypeError:
             log_errors("Incorrect data format, should be dd.mm.yyyy")
             raise TypeError
-        self._validate_age(70)
-
-    def _validate_age(self, age):
-        pass
 
 
 
 class BirthDayField(DateField):
-    def _validate_age(self, age):
+    def _validate(self):
+        super(BirthDayField, self)._validate()
+        if not self.value:
+            return
         seventy_years_ago = datetime.datetime.now() - relativedelta(years=70)
         if datetime.datetime.strptime(self.value, '%d.%m.%Y') < seventy_years_ago:
             log_errors("The system supports only 70 year ages only")
@@ -175,7 +174,7 @@ class BaseRequest(object):
                                     and isinstance(field, BaseField)]
         for attribute, field in class_attribute_fields:
             try:
-                setattr(self, attribute, data.get(attribute, None))
+                setattr(self, attribute, data.get(attribute))
             except (TypeError, ValueError), e:
                 # to send the errors to the api users
                 self.invalid_fields.append(attribute)

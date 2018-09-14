@@ -148,7 +148,7 @@ class TestOnlineScoreRequest:
         request = OnlineScoreRequest(arguments)
         assert 'birthday' not in request.invalid_fields
 
-    def test_birthday_field_is_required(self):
+    def test_birthday_field_is_not_required(self):
         arguments = {}
         request = OnlineScoreRequest(arguments)
         assert 'birthday' not in request.invalid_fields
