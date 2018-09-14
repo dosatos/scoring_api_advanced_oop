@@ -180,7 +180,7 @@ class BaseRequest(object):
 
 
     def is_valid(self):
-        pass
+        return len(self.invalid_fields)
 
 
 
@@ -197,7 +197,7 @@ class ClientsInterestsRequest(BaseRequest):
         return self.date is not None and self.date != ""
 
     def is_valid(self):
-        return True
+        super(ClientsInterestsRequest, self).is_valid()
 
 
 
@@ -234,6 +234,7 @@ class OnlineScoreRequest(BaseRequest):
         return self.gender is not None
 
     def is_valid(self):
+        super(OnlineScoreRequest, self).is_valid()
         if not any([self.has_first_name and self.has_last_name,
                     self.has_birthday and self.has_gender,
                     self.has_phone and self.has_email]):
