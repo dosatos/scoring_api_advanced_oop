@@ -90,7 +90,6 @@ class CharField(BaseField):
         pass
 
 
-
 class EmailField(CharField):
     def additional_validation(self):
         if self.value:
