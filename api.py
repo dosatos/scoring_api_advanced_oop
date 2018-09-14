@@ -144,13 +144,12 @@ class BirthDayField(DateField):
 
 class GenderField(BaseField):
     def _validate(self):
-        if isinstance(self.value, int) and self.value in [1, 2]:
-            return
-        if self.value in [None, 0, ""]:
-            self.value = 0
-            return
-        log_errors("Wrong gender input. should be 0, 1, 2")
-        raise TypeError
+        if not isinstance(self.value, int) and self.value is not None:
+            log_errors("TypeError, gender input. should be 0, 1, 2")
+            raise ValueError
+        if self.value not in [0, 1, 2, None]:
+            log_errors("ValueError, gender input. should be 0, 1, 2")
+            raise TypeError
 
 
 
