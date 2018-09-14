@@ -84,8 +84,6 @@ class CharField(BaseField):
         if not isinstance(self.value, (str, unicode)) and self.value is not None:
             log_errors("{self.__class__.__name__} is incorrect".format(self=self))
             raise TypeError
-        self.additional_validation()
-
 
 
 class EmailField(CharField):
