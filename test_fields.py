@@ -1,26 +1,5 @@
 import pytest
-import hashlib
-
-from api import ADMIN_LOGIN, ADMIN_SALT, SALT, MethodRequest, OnlineScoreRequest, ClientsInterestsRequest, Response
-
-
-@pytest.fixture
-def data():
-    data = {"account": "horns&hoofs", "login": "h&f",
-            "method": "online_score",
-            "token":"55cc9ce545bcd144300fe9efc28e65d415b923ebb6be1e19d2750a2c03e80dd209a27954dca045e5bb12418e7d89b6d718a9e35af",
-            "arguments": {
-                "phone": "79175002040", "email": "stupnikov@otus.ru",
-                "first_name": "Yeldos", "last_name": "Balgabekov",
-                "birthday": "01.01.1990", "gender": 1}}
-    return data
-
-
-def generate_token(request):
-    if request.is_admin:
-        return hashlib.sha512(datetime.datetime.now().strftime("%Y%m%d%H") + ADMIN_SALT).hexdigest()
-    else:
-        return hashlib.sha512(request.account + request.login + SALT).hexdigest()
+from api import ADMIN_LOGIN, MethodRequest, OnlineScoreRequest, ClientsInterestsRequest
 
 
 
@@ -273,28 +252,3 @@ class TestClientInterestRequest:
         arguments = {'date': value}
         request = ClientsInterestsRequest(arguments)
         assert request.has_date is False
-
-
-
-# class TestResponse:
-#
-#     def test_generate_response_success(self, data):
-#         data['token'] = generate_token(MethodRequest(data))
-#         store = {
-#             "request": MethodRequest(data),
-#             "is_admin": False,
-#             "used_method": OnlineScoreRequest(data),
-#         }
-#         r = OnlineScoreRequest(data)
-#
-#         assert [r.has_first_name and r.has_last_name,
-#          r.has_birthday and r.has_gender,
-#          r.has_phone and r.has_email] == 1
-#
-#         # response, code = Response(store).generate_response()
-#         # assert (response, code) is True
-#
-#
-#     def test_generate_response_failure(self):
-#         pass
-
