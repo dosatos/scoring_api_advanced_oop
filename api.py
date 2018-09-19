@@ -11,6 +11,7 @@ import uuid
 from optparse import OptionParser
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 from scoring import get_score, get_interests
+from store import Store
 
 
 SALT = "Otus"
@@ -331,18 +332,6 @@ def check_auth(request):
 def method_handler(request, context, store):
     method_request = MethodRequest(request)
     response, code = Response(method_request, context, store).get_response()
-    # store = {
-    #     'request': MethodRequest(request['body']),
-    #     'is_admin': False,
-    # }
-    # if store['request'].method == "online_score":
-    #     store['used_method'] = OnlineScoreRequest(store['request'].arguments)
-    #     context['has'] = store['used_method'].has_fields
-    # elif store['request'].method == "clients_interests":
-    #     store['used_method'] = ClientsInterestsRequest(store['request'].arguments)
-    #     context['nclients'] = len(store['used_method'].client_ids)
-    #
-    # response, code = Response(store).generate_response()
     return response, code
 
 
@@ -351,7 +340,7 @@ class MainHTTPHandler(BaseHTTPRequestHandler):
     router = {
         "method": method_handler
     }
-    store = None
+    store = Store()
 
     def get_request_id(self, headers):
         return headers.get('HTTP_X_REQUEST_ID', uuid.uuid4().hex)
