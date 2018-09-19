@@ -1,1 +1,4 @@
-{}
+{
+  "test_fields.py::TestClientInterestRequest::()::test_has_client_ids_field_success[value0]": true, 
+  "test_fields.py::TestClientInterestRequest::()::test_has_client_ids_field_success[value1]": true
+}
