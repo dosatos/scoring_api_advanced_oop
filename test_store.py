@@ -58,8 +58,6 @@ class TestGetScore:
     def test_cache_set_expiry_time(self, s, id_data_pair, duration, pause, result):
         idx, data = id_data_pair
         s.cache_set(idx, data, duration)
-        assert False
-        return
         time.sleep(pause)
         assert s.cache_get(idx) == result
 

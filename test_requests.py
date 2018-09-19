@@ -76,7 +76,6 @@ class TestResponse:
         data['token'] = generate_token(data, data['login'] == ADMIN_LOGIN)
         data['arguments'][field_name] = field_value
         method_request = MethodRequest(data)
-        print "!!!" * 30, method_request.invalid_fields
         r = Response(method_request, context, store)
         response, code = r.get_response()
         assert response == expected_response

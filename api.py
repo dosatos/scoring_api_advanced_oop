@@ -129,9 +129,9 @@ class DateField(CharField):
             return
         try:
             self.value = datetime.datetime.strptime(value, '%d.%m.%Y')
-        except TypeError:
+        except ValueError:
             log_errors("Incorrect data format, should be dd.mm.yyyy")
-            raise TypeError
+            raise ValueError
 
 
 
@@ -144,7 +144,7 @@ class BirthDayField(DateField):
         seventy_years_ago = datetime.datetime.now() - relativedelta(years=70)
         if datetime.datetime.strptime(value, '%d.%m.%Y') < seventy_years_ago:
             log_errors("The system supports only 70 year ages only")
-            raise TypeError
+            raise ValueError
 
 
 
@@ -302,10 +302,18 @@ class Response(object):
     def process(self, method_request):
         if method_request.method == "online_score":
             request = OnlineScoreRequest(method_request.arguments)
-            self.response, self.code = {"score": self.get_score_from_request(request, method_request.is_admin)}, OK
+            if request.invalid_fields:
+                self.response, self.code = "{}{}".format(INVALID_ARGS_MESSAGE, ",- ".join(request.invalid_fields)), INVALID_REQUEST
+            elif not request.is_valid():
+                self.response, self.code = INSUFFICIENT_ARG_PAIRS_MESSAGE, INVALID_REQUEST
+            else:
+                self.response, self.code = {"score": self.get_score_from_request(request, method_request.is_admin)}, OK
         elif method_request.method == "client_interests":
             request = ClientsInterestsRequest(method_request.arguments)
-            self.response, self.code = self.get_interests_from_request(request), OK
+            if request.is_valid():
+                self.response, self.code = "{}{}".format(INVALID_ARGS_MESSAGE, ", ".join(request.invalid_fields)), INVALID_REQUEST
+            else:
+                self.response, self.code = self.get_interests_from_request(request), OK
 
 
 def check_auth(request):
@@ -319,8 +327,8 @@ def check_auth(request):
 
 
 def method_handler(request, context, store):
-    method_request = MethodRequest(request, context, store)
-    response, code = Response(method_request).get_response()
+    method_request = MethodRequest(request)
+    response, code = Response(method_request, context, store).get_response()
     # store = {
     #     'request': MethodRequest(request['body']),
     #     'is_admin': False,
