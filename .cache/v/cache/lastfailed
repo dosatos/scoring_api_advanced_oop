@@ -1,1 +1,4 @@
-{}
+{
+  "test_requests.py::TestResponse::()::test_invalid_fields": true, 
+  "test_requests.py::TestResponse::()::test_method_handler_success[account-horns&hoofs-200]": true
+}

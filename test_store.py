@@ -1,5 +1,7 @@
 import pytest
 from store import Store
+import time
+from scoring import get_score, get_interests
 import hashlib
 import datetime
 
@@ -19,38 +21,81 @@ def data():
     return data
 
 
+@pytest.fixture
+def s():
+    return Store()
 
-class TestStore:
 
-    @pytest.mark.parametrize("kval_pair, result", [
-        (("hello", "world"), "world"),
-        (("dictionary", '{"name": "yeldos"}'), '{"name": "yeldos"}')
+
+class TestGetScore:
+
+
+    @pytest.mark.parametrize("id_data_pair, duration, result", [
+        (("uid:hello", "world"), 60*60, "world"),
+        (("i:cidhello", '{"interests": ["hello", "world"]}'), 60*60, '{"interests": ["hello", "world"]}')
     ])
-    def test_get_set_store_success(self, kval_pair, result):
-        s = Store()
-        key, val = kval_pair
-        s.set(key, val)
-        assert s.get(key) == result
+    def test_cache_get_set_store_success(self, s, id_data_pair, duration, result):
+        idx, data = id_data_pair
+        s.cache_set(idx, data, duration)
+        assert s.cache_get(idx) == result
+        s.delete(idx)
 
-    @pytest.mark.xfail(raises=TypeError)
-    @pytest.mark.parametrize("kval_pair, result", [
-        (("hello", ["world"]), ["world"]),
-        (("hello", 100), 100),
+    @pytest.mark.parametrize("id_data_pair, duration, result", [
+        (("uid:hello", "world"), 60 * 60, "world"),
+        (("i:cidhello", '{"interests": ["hello", "world"]}'), 60 * 60, '{"interests": ["hello", "world"]}')
     ])
-    def test_get_set_store_failure(self, kval_pair, result):
-        s = Store()
-        key, val = kval_pair
-        s.set(key, val)
+    def test_cache_delete_store_success(self, s, id_data_pair, duration, result):
+        idx, data = id_data_pair
+        s.cache_set(idx, data, duration)
+        assert s.cache_get(idx) == result
+        s.delete(idx)
+        assert s.cache_get(idx) is None
 
-    @pytest.mark.parametrize("kval_pair, result", [
-        (("hello", "world"), "world"),
-        (("dictionary", '{"name": "yeldos"}'), '{"name": "yeldos"}')
+    @pytest.mark.parametrize("id_data_pair, duration, pause, result", [
+        (("uid:hello", "world"), 1, 0, "world"),
+        (("i:cidhello", '{"interests": ["hello", "world"]}'), 1, 1.1, None)
     ])
-    def test_get_set_store_success(self, kval_pair, result):
-        s = Store()
-        key, val = kval_pair
-        s.set(key, val)
-        assert s.get(key) == result
+    def test_cache_set_expiry_time(self, s, id_data_pair, duration, pause, result):
+        idx, data = id_data_pair
+        s.cache_set(idx, data, duration)
+        time.sleep(pause)
+        assert s.cache_get(idx) == result
 
+    @pytest.mark.parametrize("phone, email, first_name, last_name, birthday, gender, result", [
+        ("79175002040", "yeldos@balgabekov.com", "Yeldos", "Balgabekov", datetime.datetime(2017, 01, 31), 1, 5),
+        ("79175002040", "", "Yeldos", "Balgabekov", datetime.datetime(2017, 01, 31), 1, 3.5),
+        ("", "yeldos@balgabekov.com", "Yeldos", "Balgabekov", datetime.datetime(2017, 01, 31), 1, 3.5),
+        ("", "", "Yeldos", "Balgabekov", datetime.datetime(2017, 01, 31), 1, 2),
+        ("79175002040", "yeldos@balgabekov.com", "Yeldos", "", datetime.datetime(2017, 01, 31), 1, 4.5),
+        ("79175002040", "yeldos@balgabekov.com", "", "Balgabekov", datetime.datetime(2017, 01, 31), 1, 4.5),
+        ("79175002040", "yeldos@balgabekov.com", "Yeldos", "Balgabekov", None, 1, 3.5),
+        ("79175002040", "yeldos@balgabekov.com", "Yeldos", "Balgabekov", datetime.datetime(2017, 01, 31), "", 3.5),
+        ("79175002040", "yeldos@balgabekov.com", "Yeldos", "Balgabekov", None, None, 3.5),
+        ("", "", "", "", None, None, 0),
+    ])
+    def test_get_score(self, s, phone, email, birthday, gender, first_name, last_name, result):
+        calc_score = get_score(s, phone, email, birthday, gender, first_name, last_name)
+        assert calc_score == result
+
+        key_parts = [
+            first_name or "",
+            last_name or "",
+            birthday.strftime("%Y%m%d") if birthday is not None else "",
+        ]
+        key = "uid:" + hashlib.md5("".join(key_parts)).hexdigest()
+
+        s.delete(key)
+
+
+class TestGetInterests:
+
+    @pytest.mark.parametrize("cid, value, result", [
+        ("hello", '["value"]', ["value"]),
+        ("hello", '{"value": "name"}', {"value": "name"}),
+    ])
+    def test_get_interests_success(self, s, cid, value, result):
+        s.cache_set("i:%s" % cid, value)
+        assert get_interests(s, cid) == result
+        s.delete("i:%s" % cid)
 
 

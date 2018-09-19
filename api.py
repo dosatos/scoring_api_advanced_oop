@@ -39,6 +39,7 @@ GENDERS = {
 }
 INSUFFICIENT_ARG_PAIRS_MESSAGE = "least required pairs: (phone, email), (first_name, last_name), (gender, birthday)"
 INVALID_ARGS_MESSAGE = "Invalid arguments: "
+ALLOWED_METHODS = ["online_score", "client_interests"]
 
 
 
@@ -123,7 +124,7 @@ class DateField(BaseField):
         if not self.value:
             return
         try:
-            datetime.datetime.strptime(self.value, '%d.%m.%Y')
+            self.value = datetime.datetime.strptime(self.value, '%d.%m.%Y')
         except TypeError:
             log_errors("Incorrect data format, should be dd.mm.yyyy")
             raise TypeError
@@ -257,36 +258,65 @@ class MethodRequest(BaseRequest):
 
 
 class Response(object):
-    def __init__(self, store):
+    def __init__(self, method_request, context, store):
+        self.context = context
         self.store = store
+        self.response = None
+        self.code = None
+        self.set_response(method_request)
 
-    def generate_response(self):
-        used_method = self.store['used_method']
-        if not check_auth(self.store['request']):
-            response, code = "Forbidden", 403
-        elif used_method.invalid_fields:
-            response, code = "{}{}".format(INVALID_ARGS_MESSAGE, ", ".join(used_method.invalid_fields)), INVALID_REQUEST
-        elif not used_method.is_valid():
-            response, code = INSUFFICIENT_ARG_PAIRS_MESSAGE, BAD_REQUEST
+    def get_response(self):
+        return self.response, self.code
+
+    def set_response(self, method_request):
+        print "(!!!)"*30
+        if method_request.invalid_fields:
+            self.response, self.code = "{}{}".format(INVALID_ARGS_MESSAGE, ", ".join(method_request.invalid_fields)), api.INVALID_REQUEST
+        elif method_request.method not in ALLOWED_METHODS:
+            self.response, self.code = INVALID_ARGS_MESSAGE, INVALID_REQUEST
         else:
-            if isinstance(used_method, OnlineScoreRequest):
-                response, code = {"score": self.get_score_from_request()}, OK
-            elif isinstance(used_method, ClientsInterestsRequest):
-                response, code = self.get_interests_from_request(), OK
-        return response, code
+            self.process(method_request)
 
-    def get_score_from_request(self):
-        phone, email = self.store['used_method'].phone, self.store['used_method'].email
-        birthday, gender = self.store['used_method'].birthday, self.store['used_method'].gender
-        first_name, last_name = self.store['used_method'].first_name, self.store['used_method'].last_name
-        if self.store['is_admin']:
+    def get_score_from_request(self, request, is_admin):
+
+        phone = request.phone
+        email = request.email
+        birthday = request.birthday
+        gender = request.gender
+        first_name = request.first_name
+        last_name = request.last_name
+
+        if is_admin:
             return 42
         return get_score(self.store, phone, email,
                          birthday=birthday, gender=gender,
                          first_name=first_name, last_name=last_name)
 
-    def get_interests_from_request(self):
-        return {i: get_interests(self.store, i) for i in self.store['used_method'].client_ids}
+    def get_interests_from_request(self, method_request):
+        return {i: get_interests(self.store, i) for i in method_request.client_ids}
+
+    def process(self, method_request):
+        if method_request.method == "online_score":
+            request = OnlineScoreRequest(method_request.arguments)
+            self.response, self.code = {"score": self.get_score_from_request(request, method_request.is_admin)}, OK
+        elif method_request.method == "client_interests":
+            request = ClientsInterestsRequest(method_request.arguments)
+            self.response, self.code = self.get_interests_from_request(request), OK
+
+    # def generate_response(self):
+    #     used_method = self.store['used_method']
+    #     if not check_auth(self.store['request']):
+    #         response, code = "Forbidden", 403
+    #     elif used_method.invalid_fields:
+    #         response, code = "{}{}".format(INVALID_ARGS_MESSAGE, ", ".join(used_method.invalid_fields)), INVALID_REQUEST
+    #     elif not used_method.is_valid():
+    #         response, code = INSUFFICIENT_ARG_PAIRS_MESSAGE, BAD_REQUEST
+    #     else:
+    #         if isinstance(used_method, OnlineScoreRequest):
+    #             response, code = {"score": self.get_score_from_request()}, OK
+    #         elif isinstance(used_method, ClientsInterestsRequest):
+    #             response, code = self.get_interests_from_request(), OK
+    #     return response, code
 
 
 
@@ -301,18 +331,20 @@ def check_auth(request):
 
 
 def method_handler(request, context, store):
-    store = {
-        'request': MethodRequest(request['body']),
-        'is_admin': False,
-    }
-    if store['request'].method == "online_score":
-        store['used_method'] = OnlineScoreRequest(store['request'].arguments)
-        context['has'] = store['used_method'].has_fields
-    elif store['request'].method == "clients_interests":
-        store['used_method'] = ClientsInterestsRequest(store['request'].arguments)
-        context['nclients'] = len(store['used_method'].client_ids)
-
-    response, code = Response(store).generate_response()
+    method_request = MethodRequest(request, context, store)
+    response, code = Response(method_request).get_response()
+    # store = {
+    #     'request': MethodRequest(request['body']),
+    #     'is_admin': False,
+    # }
+    # if store['request'].method == "online_score":
+    #     store['used_method'] = OnlineScoreRequest(store['request'].arguments)
+    #     context['has'] = store['used_method'].has_fields
+    # elif store['request'].method == "clients_interests":
+    #     store['used_method'] = ClientsInterestsRequest(store['request'].arguments)
+    #     context['nclients'] = len(store['used_method'].client_ids)
+    #
+    # response, code = Response(store).generate_response()
     return response, code
 
 

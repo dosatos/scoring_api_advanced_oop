@@ -1,43 +1,42 @@
 import redis
+import time
+import functools
+
+
+def connection_time_out(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        for _ in range(5):
+            try:
+                return func(*args, **kwargs)
+            except redis.ConnectionError:
+                time.sleep(5)
+            raise redis.ConnectionError
+    return wrapper
 
 
 class Store(object):
     def __init__(self):
         self.conn = redis.StrictRedis(host='localhost', port=6379, db=0)
 
+    @connection_time_out
     def get(self, key):
         return self.conn.get(key)
 
-    def set(self, key, val):
-        if isinstance(val, str):
-            self.conn.set(key, val)
+    @connection_time_out
+    def cache_get(self, key):
+        return self.conn.get(key)
+
+    @connection_time_out
+    def cache_set(self, key, val, duration=60*60):
+        if isinstance(val, (str, float)) or val == 0:
+            self.conn.setex(key, duration, val)
         elif isinstance(val, dict):
-            self.conn.hmset(key, val)
+            self.conn.hmsetex(key, val)
+            self.conn.expire(key, duration)
         else:
             raise TypeError
 
-    def cache_get(self, key):
-        return self.conn.hget("cache", key)
-
-
-# data = {"account": "horns&hoofs", "login": "h&f",
-#             "method": "online_score",
-#             "token":"55cc9ce545bcd144300fe9efc28e65d415b923ebb6be1e19d2750a2c03e80dd209a27954dca045e5bb12418e7d89b6d718a9e35af",
-#             "arguments": {
-#                 "phone": "79175002040", "email": "yeldos@balgabekov.com",
-#                 "first_name": "Yeldos", "last_name": "Balgabekov",
-#                 "birthday": "01.01.1990", "gender": 1}}
-
-
-
-# r = redis.StrictRedis(host='localhost', port=6379, db=0)
-
-
-
-#
-# r.hmset('foo', data)
-#
-# print r.hmget('foo', 'account')
-# print r.hget('foo', 'account')
-# print r.hgetall('foo')
-#
+    @connection_time_out
+    def delete(self, key):
+        self.conn.delete(key)

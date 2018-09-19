@@ -13,7 +13,10 @@ def get_score(store, phone, email, birthday=None, gender=None, first_name=None, 
     # fallback to heavy calculation in case of cache miss
     score = store.cache_get(key) or 0
     if score:
-        return score
+        try:
+            return float(score)
+        except TypeError:
+            return score
     if phone:
         score += 1.5
     if email:

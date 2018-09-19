@@ -2,6 +2,7 @@ import pytest
 import hashlib
 import datetime
 
+import api
 from api import ADMIN_LOGIN, ADMIN_SALT, SALT, MethodRequest, \
     OnlineScoreRequest, ClientsInterestsRequest, Response, check_auth
 
@@ -10,7 +11,7 @@ from api import ADMIN_LOGIN, ADMIN_SALT, SALT, MethodRequest, \
 def data():
     data = {"account": "horns&hoofs", "login": "h&f",
             "method": "online_score",
-            "token":"55cc9ce545bcd144300fe9efc28e65d415b923ebb6be1e19d2750a2c03e80dd209a27954dca045e5bb12418e7d89b6d718a9e35af",
+            "token": "a_token",
             "arguments": {
                 "phone": "79175002040", "email": "yeldos@balgabekov.com",
                 "first_name": "Yeldos", "last_name": "Balgabekov",
@@ -27,27 +28,44 @@ def generate_token(data, is_admin):
 
 class TestResponse:
 
-    def test_token_generatiion_for_admin_success(self, data):
+    def test_token_generation_for_admin_success(self, data):
         data['login'] = ADMIN_LOGIN
         data['token'] = generate_token(data, data['login'] == ADMIN_LOGIN)
         request = MethodRequest(data)
         assert check_auth(request)
 
-    def test_token_generatiion_for_admin_failure(self, data):
+    def test_token_generation_for_admin_failure(self, data):
         data['login'] = ADMIN_LOGIN
         data['token'] = "super_unique_token"
         request = MethodRequest(data)
         assert not check_auth(request)
 
-    def test_token_generatiion_for_non_admin_success(self, data):
+    def test_token_generation_for_non_admin_success(self, data):
         data['token'] = generate_token(data, data['login'] == ADMIN_LOGIN)
         request = MethodRequest(data)
         assert check_auth(request)
 
-    def test_token_generatiion_for_non_admin_failure(self, data):
+    def test_token_generation_for_non_admin_failure(self, data):
         data['token'] = "super_unique_token"
         request = MethodRequest(data)
         assert not check_auth(request)
+
+    @pytest.mark.parametrize("field_name, field_value, expected_code", [
+        ("account", "horns&hoofs", 200),
+        ("method", "unknown_method", api.INVALID_REQUEST),
+    ])
+    def test_method_handler_success(self, data, field_name, field_value, expected_code):
+        store = None
+        context = None
+        data['token'] = generate_token(data, data['login'] == ADMIN_LOGIN)
+        data[field_name] = field_value
+        method_request = MethodRequest(data)
+        response = Response(method_request, context, store)
+        response, code = response.get_response()
+        assert code == expected_code
+
+    def test_invalid_fields(self):
+        assert False
 
     # def test_generate_response_success(self, data):
     #     data['token'] = generate_token(MethodRequest(data))
