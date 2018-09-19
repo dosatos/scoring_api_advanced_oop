@@ -68,7 +68,7 @@ class TestResponse:
         assert code == expected_code
 
     @pytest.mark.parametrize("field_name, field_value, expected_response", [
-        ("birthday", "2010.10.10", "{}{}".format(api.INVALID_ARGS_MESSAGE, ", ".join(['birthday']))),
+        ("birthday", "201.10.10", "{}{}".format(api.INVALID_ARGS_MESSAGE, ", ".join(['birthday']))),
     ])
     def test_invalid_fields_response_message_is_generated_correctly(self, data, field_name, field_value, expected_response):
         store = Store()
@@ -76,8 +76,9 @@ class TestResponse:
         data['token'] = generate_token(data, data['login'] == ADMIN_LOGIN)
         data['arguments'][field_name] = field_value
         method_request = MethodRequest(data)
-        response = Response(method_request, context, store)
-        response, code = response.get_response()
+        print "!!!" * 30, method_request.invalid_fields
+        r = Response(method_request, context, store)
+        response, code = r.get_response()
         assert response == expected_response
         # method_request = MethodRequest(data)
         # request = OnlineScoreRequest(method_request.arguments)

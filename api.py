@@ -179,11 +179,10 @@ class BaseRequest(object):
         for attribute, field in class_attribute_fields:
             try:
                 setattr(self, attribute, data.get(attribute))
+                self.has_fields.append(attribute)
             except (TypeError, ValueError), e:
                 # to send the errors to the api users
                 self.invalid_fields.append(attribute)
-            if attribute in data and data[attribute]:
-                self.has_fields.append(attribute)
 
 
     def is_valid(self):
@@ -275,7 +274,7 @@ class Response(object):
         return self.response, self.code
 
     def set_response(self, method_request):
-        if method_request.invalid_fields:
+        if method_request.is_valid():
             self.response, self.code = "{}{}".format(INVALID_ARGS_MESSAGE, ", ".join(method_request.invalid_fields)), api.INVALID_REQUEST
         elif method_request.method not in ALLOWED_METHODS:
             self.response, self.code = ERRORS[INVALID_REQUEST], INVALID_REQUEST
