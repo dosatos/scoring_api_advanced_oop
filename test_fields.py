@@ -191,50 +191,50 @@ class TestMethodRequest:
 #         request = OnlineScoreRequest(arguments)
 #         assert request.has_phone is False
 
-    @pytest.mark.parametrize("value", ["16.12.2010", "16.12.1980"])
-    def test_has_birthday_field_success(self, value):
-        arguments = {'birthday': value}
-        request = OnlineScoreRequest(arguments)
-        assert request.has_birthday is True
-
-    @pytest.mark.parametrize("value", ["", None, "1980.10.10", "16-12-1980", "16/12/1980"])
-    def test_has_birthday_field_failure(self, value):
-        arguments = {'birthday': value}
-        request = OnlineScoreRequest(arguments)
-        assert request.has_birthday is False
-
-    @pytest.mark.parametrize("value", [0, 1, 2])
-    def test_has_gender_field_success(self, value):
-        arguments = {'gender': value}
-        request = OnlineScoreRequest(arguments)
-        assert request.has_gender is True
-
-
-    @pytest.mark.parametrize("value", ["", 3, None, -1, "male"])
-    def test_has_gender_field_failure(self, value):
-        arguments = {'gender': value}
-        request = OnlineScoreRequest(arguments)
-        assert request.has_gender is False
-
-
-
-class TestClientInterestRequest:
-
-    def test_client_ids_field_is_required(self):
-        arguments = {}
-        request = ClientsInterestsRequest(arguments)
-        assert 'client_ids' in request.invalid_fields
-
-    @pytest.mark.parametrize("date", [(""), (" "), ])
-    def test_date_field_can_be_nulled(self, date):
-        arguments = {'date': date}
-        request = ClientsInterestsRequest(arguments)
-        assert 'date' not in request.invalid_fields
-
-    def test_date_field_is_required(self):
-        arguments = {}
-        request = ClientsInterestsRequest(arguments)
-        assert 'date' not in request.invalid_fields
+#     @pytest.mark.parametrize("value", ["16.12.2010", "16.12.1980"])
+#     def test_has_birthday_field_success(self, value):
+#         arguments = {'birthday': value}
+#         request = OnlineScoreRequest(arguments)
+#         assert request.has_birthday is True
+#
+#     @pytest.mark.parametrize("value", ["", None, "1980.10.10", "16-12-1980", "16/12/1980"])
+#     def test_has_birthday_field_failure(self, value):
+#         arguments = {'birthday': value}
+#         request = OnlineScoreRequest(arguments)
+#         assert request.has_birthday is False
+#
+#     @pytest.mark.parametrize("value", [0, 1, 2])
+#     def test_has_gender_field_success(self, value):
+#         arguments = {'gender': value}
+#         request = OnlineScoreRequest(arguments)
+#         assert request.has_gender is True
+#
+#
+#     @pytest.mark.parametrize("value", ["", 3, None, -1, "male"])
+#     def test_has_gender_field_failure(self, value):
+#         arguments = {'gender': value}
+#         request = OnlineScoreRequest(arguments)
+#         assert request.has_gender is False
+#
+#
+#
+# class TestClientInterestRequest:
+#
+#     def test_client_ids_field_is_required(self):
+#         arguments = {}
+#         request = ClientsInterestsRequest(arguments)
+#         assert 'client_ids' in request.invalid_fields
+#
+#     @pytest.mark.parametrize("date", [(""), (" "), ])
+#     def test_date_field_can_be_nulled(self, date):
+#         arguments = {'date': date}
+#         request = ClientsInterestsRequest(arguments)
+#         assert 'date' not in request.invalid_fields
+#
+#     def test_date_field_is_required(self):
+#         arguments = {}
+#         request = ClientsInterestsRequest(arguments)
+#         assert 'date' not in request.invalid_fields
 
     @pytest.mark.parametrize("value", [[1, 2, 3], [1]])
     def test_has_client_ids_field_success(self, value):
@@ -247,15 +247,15 @@ class TestClientInterestRequest:
         arguments = {'client_ids': value}
         request = ClientsInterestsRequest(arguments)
         assert request.has_client_ids is False
-
-    @pytest.mark.parametrize("value", ["12.12.1989"])
-    def test_has_date_field_success(self, value):
-        arguments = {'date': value}
-        request = ClientsInterestsRequest(arguments)
-        assert request.has_date is True
-
-    @pytest.mark.parametrize("value", [""])
-    def test_has_date_field_failure(self, value):
-        arguments = {'date': value}
-        request = ClientsInterestsRequest(arguments)
-        assert request.has_date is False
+    #
+    # @pytest.mark.parametrize("value", ["12.12.1989"])
+    # def test_has_date_field_success(self, value):
+    #     arguments = {'date': value}
+    #     request = ClientsInterestsRequest(arguments)
+    #     assert request.has_date is True
+    #
+    # @pytest.mark.parametrize("value", [""])
+    # def test_has_date_field_failure(self, value):
+    #     arguments = {'date': value}
+    #     request = ClientsInterestsRequest(arguments)
+    #     assert request.has_date is False

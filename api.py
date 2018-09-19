@@ -160,9 +160,10 @@ class GenderField(BaseField):
 
 
 class ClientIDsField(BaseField):
-    def _validate(self):
-        if isinstance(value, list) or value is None:
-            return
+    def _validate(self, value):
+        if isinstance(value, list):
+            if len(filter(int, value)) == len(value):
+                return
         log_errors("Wrong client id input")
         raise TypeError
 
