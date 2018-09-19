@@ -308,12 +308,14 @@ class Response(object):
                 self.response, self.code = INSUFFICIENT_ARG_PAIRS_MESSAGE, INVALID_REQUEST
             else:
                 self.response, self.code = {"score": self.get_score_from_request(request, method_request.is_admin)}, OK
+                self.context['has'] = request.has_fields
         elif method_request.method == "client_interests":
             request = ClientsInterestsRequest(method_request.arguments)
             if request.is_valid():
                 self.response, self.code = "{}{}".format(INVALID_ARGS_MESSAGE, ", ".join(request.invalid_fields)), INVALID_REQUEST
             else:
                 self.response, self.code = self.get_interests_from_request(request), OK
+                self.context['nclients'] = len(request.client_ids)
 
 
 def check_auth(request):
