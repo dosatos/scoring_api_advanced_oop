@@ -55,6 +55,7 @@ class BaseField(object):
         return self.value
 
     def __set__(self, instance, value):
+        self.value = None
         self._validate_required(value)
         if value is None:
             return
