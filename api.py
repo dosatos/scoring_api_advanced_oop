@@ -58,12 +58,7 @@ class BaseField(object):
 
         self._validate_required(value)
         self._validate_nullable(value)
-
-        if value is not None and isinstance(self.value, (str, unicode)):
-            # for email and phone fields
-            self.value = str(value).strip()
-        else:
-            self.value = value
+        self.value = value
         self._validate()
 
     def _validate(self):
@@ -91,12 +86,15 @@ class CharField(BaseField):
 class EmailField(CharField):
     def _validate(self):
         super(EmailField, self)._validate()
-        if self.value:
+        if isinstance(self.value, (str, unicode)):
+            self.value = str(self.value).strip()
+            if not self.value:
+                return
             lacks_at_symbol = len(self.value.split("@")) != 2
             if lacks_at_symbol:
                 log_errors("Incorrect email, ValueError, missing @")
+                self.value = None
                 raise ValueError
-
 
 
 class PhoneField(CharField):
@@ -105,13 +103,15 @@ class PhoneField(CharField):
         try:
             if self.value is None:
                 raise TypeError
-            self.value = str(self.value)
+            self.value = str(self.value).strip()
             length_is_11 = len(self.value) == 11
             starts_with_7 = self.value.startswith("7")
             if length_is_11 and starts_with_7:
                 return
         except TypeError:
+            self.value = None
             log_errors("Incorrect phone")
+            raise TypeError
 
 
 
@@ -150,6 +150,7 @@ class BirthDayField(DateField):
 
 class GenderField(BaseField):
     def _validate(self):
+        print "!!!" * 30, type(self.value), self.value
         if not isinstance(self.value, int) and self.value is not None:
             log_errors("TypeError, gender input. should be 0, 1, 2")
             raise ValueError

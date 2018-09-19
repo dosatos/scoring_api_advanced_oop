@@ -173,7 +173,7 @@ class TestOnlineScoreRequest:
         request = OnlineScoreRequest(arguments)
         assert request.has_email is True
 
-    @pytest.mark.parametrize("value", ["", None])
+    @pytest.mark.parametrize("value", ["", None, 1])
     def test_has_email_field_failure(self, value):
         arguments = {'email': value}
         request = OnlineScoreRequest(arguments)

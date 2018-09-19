@@ -1,3 +1,6 @@
 {
-  "test_requests.py::TestResponse::()::test_invalid_fields_response_message_is_generated_correctly[birthday-2010.10.10-Invalid arguments: birthday]": true
+  "test_fields.py::TestClientInterestRequest::()::test_date_field_can_be_nulled[ ]": true, 
+  "test_fields.py::TestOnlineScoreRequest::()::test_birthday_field_can_be_nulled[ ]": true, 
+  "test_fields.py::TestOnlineScoreRequest::()::test_has_email_field_failure[1]": true, 
+  "test_fields.py::TestOnlineScoreRequest::()::test_phone_field_is_required": true
 }
