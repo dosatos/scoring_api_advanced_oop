@@ -1,6 +1,3 @@
 {
-  "test_fields.py::TestClientInterestRequest::()::test_date_field_can_be_nulled[ ]": true, 
-  "test_fields.py::TestOnlineScoreRequest::()::test_birthday_field_can_be_nulled[ ]": true, 
-  "test_fields.py::TestOnlineScoreRequest::()::test_has_email_field_failure[1]": true, 
-  "test_fields.py::TestOnlineScoreRequest::()::test_phone_field_is_required": true
+  "test_fields.py::TestMethodRequest::()::test_is_admin_property_success[admin]": true
 }

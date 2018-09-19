@@ -55,13 +55,15 @@ class BaseField(object):
         return self.value
 
     def __set__(self, instance, value):
-
         self._validate_required(value)
+        if value is None:
+            return
         self._validate_nullable(value)
-        self.value = value
-        self._validate()
+        self._validate(value)
+        if not self.value:
+            self.value = value
 
-    def _validate(self):
+    def _validate(self, value):
         pass
 
     def _validate_required(self, value):
@@ -70,66 +72,62 @@ class BaseField(object):
             raise ValueError
 
     def _validate_nullable(self, value):
-        if not self.nullable and isinstance(value, (str, unicode)) and value in ["", " "]:
+        if not self.nullable and value in ["", " "]:
             log_errors("A field is not nullable")
             raise ValueError
 
 
 
 class CharField(BaseField):
-    def _validate(self):
-        if not isinstance(self.value, (str, unicode)) and self.value is not None:
+    def _validate(self, value):
+        if not isinstance(value, (str, unicode)):
             log_errors("{self.__class__.__name__} is incorrect".format(self=self))
             raise TypeError
 
 
 class EmailField(CharField):
-    def _validate(self):
-        super(EmailField, self)._validate()
-        if isinstance(self.value, (str, unicode)):
-            self.value = str(self.value).strip()
-            if not self.value:
-                return
-            lacks_at_symbol = len(self.value.split("@")) != 2
-            if lacks_at_symbol:
-                log_errors("Incorrect email, ValueError, missing @")
-                self.value = None
-                raise ValueError
+    def _validate(self, value):
+        super(EmailField, self)._validate(value)
+        value = str(value).strip()
+        if not value:
+            return
+        lacks_at_symbol = len(value.split("@")) != 2
+        if lacks_at_symbol:
+            log_errors("Incorrect email, ValueError, missing @")
+            raise ValueError
 
 
 class PhoneField(CharField):
-    def _validate(self):
-        super(PhoneField, self)._validate()
-        try:
-            if self.value is None:
-                raise TypeError
-            self.value = str(self.value).strip()
-            length_is_11 = len(self.value) == 11
-            starts_with_7 = self.value.startswith("7")
-            if length_is_11 and starts_with_7:
-                return
-        except TypeError:
-            self.value = None
+    def _validate(self, value):
+        super(PhoneField, self)._validate(value)
+        value = str(value).strip()
+        if not value:
+            return
+        length_is_11 = len(value) == 11
+        starts_with_7 = value.startswith("7")
+        if not (length_is_11 and starts_with_7):
             log_errors("Incorrect phone")
-            raise TypeError
-
+            raise ValueError
+        return
 
 
 
 class ArgumentsField(BaseField):
-    def _validate(self):
-        if not isinstance(self.value, dict):
+    def _validate(self, value):
+        if not isinstance(value, dict):
             log_errors("Incorrect arguments, should be dict".format(self=self))
             raise TypeError
 
 
 
-class DateField(BaseField):
-    def _validate(self):
-        if not self.value:
+class DateField(CharField):
+    def _validate(self, value):
+        super(DateField, self)._validate(value)
+        value = str(value).strip()
+        if not value:
             return
         try:
-            self.value = datetime.datetime.strptime(self.value, '%d.%m.%Y')
+            self.value = datetime.datetime.strptime(value, '%d.%m.%Y')
         except TypeError:
             log_errors("Incorrect data format, should be dd.mm.yyyy")
             raise TypeError
@@ -137,24 +135,24 @@ class DateField(BaseField):
 
 
 class BirthDayField(DateField):
-    def _validate(self):
-        super(BirthDayField, self)._validate()
-        if not self.value:
+    def _validate(self, value):
+        super(BirthDayField, self)._validate(value)
+        value = str(value).strip()
+        if not value:
             return
         seventy_years_ago = datetime.datetime.now() - relativedelta(years=70)
-        if datetime.datetime.strptime(self.value, '%d.%m.%Y') < seventy_years_ago:
+        if datetime.datetime.strptime(value, '%d.%m.%Y') < seventy_years_ago:
             log_errors("The system supports only 70 year ages only")
             raise TypeError
 
 
 
 class GenderField(BaseField):
-    def _validate(self):
-        print "!!!" * 30, type(self.value), self.value
-        if not isinstance(self.value, int) and self.value is not None:
+    def _validate(self, value):
+        if not isinstance(value, int) and value is not None:
             log_errors("TypeError, gender input. should be 0, 1, 2")
             raise ValueError
-        if self.value not in [0, 1, 2, None]:
+        if value not in [0, 1, 2, None]:
             log_errors("ValueError, gender input. should be 0, 1, 2")
             raise TypeError
 
@@ -162,7 +160,7 @@ class GenderField(BaseField):
 
 class ClientIDsField(BaseField):
     def _validate(self):
-        if isinstance(self.value, list) or self.value is None:
+        if isinstance(value, list) or value is None:
             return
         log_errors("Wrong client id input")
         raise TypeError
