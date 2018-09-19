@@ -60,6 +60,7 @@ class BaseField(object):
         self._validate_nullable(value)
 
         if value is not None and isinstance(self.value, (str, unicode)):
+            # for email and phone fields
             self.value = str(value).strip()
         else:
             self.value = value
@@ -101,13 +102,17 @@ class EmailField(CharField):
 class PhoneField(CharField):
     def _validate(self):
         super(PhoneField, self)._validate()
-        if self.value:
+        try:
+            if self.value is None:
+                raise TypeError
+            self.value = str(self.value)
             length_is_11 = len(self.value) == 11
-            starts_with_7 = str(self.value).startswith("7")
+            starts_with_7 = self.value.startswith("7")
             if length_is_11 and starts_with_7:
                 return
+        except TypeError:
             log_errors("Incorrect phone")
-            raise TypeError
+
 
 
 
@@ -269,11 +274,10 @@ class Response(object):
         return self.response, self.code
 
     def set_response(self, method_request):
-        print "(!!!)"*30
         if method_request.invalid_fields:
             self.response, self.code = "{}{}".format(INVALID_ARGS_MESSAGE, ", ".join(method_request.invalid_fields)), api.INVALID_REQUEST
         elif method_request.method not in ALLOWED_METHODS:
-            self.response, self.code = INVALID_ARGS_MESSAGE, INVALID_REQUEST
+            self.response, self.code = ERRORS[INVALID_REQUEST], INVALID_REQUEST
         else:
             self.process(method_request)
 
@@ -302,22 +306,6 @@ class Response(object):
         elif method_request.method == "client_interests":
             request = ClientsInterestsRequest(method_request.arguments)
             self.response, self.code = self.get_interests_from_request(request), OK
-
-    # def generate_response(self):
-    #     used_method = self.store['used_method']
-    #     if not check_auth(self.store['request']):
-    #         response, code = "Forbidden", 403
-    #     elif used_method.invalid_fields:
-    #         response, code = "{}{}".format(INVALID_ARGS_MESSAGE, ", ".join(used_method.invalid_fields)), INVALID_REQUEST
-    #     elif not used_method.is_valid():
-    #         response, code = INSUFFICIENT_ARG_PAIRS_MESSAGE, BAD_REQUEST
-    #     else:
-    #         if isinstance(used_method, OnlineScoreRequest):
-    #             response, code = {"score": self.get_score_from_request()}, OK
-    #         elif isinstance(used_method, ClientsInterestsRequest):
-    #             response, code = self.get_interests_from_request(), OK
-    #     return response, code
-
 
 
 def check_auth(request):

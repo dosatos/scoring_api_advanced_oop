@@ -1,4 +1,3 @@
 {
-  "test_requests.py::TestResponse::()::test_invalid_fields": true, 
-  "test_requests.py::TestResponse::()::test_method_handler_success[account-horns&hoofs-200]": true
+  "test_requests.py::TestResponse::()::test_invalid_fields_response_message_is_generated_correctly[birthday-2010.10.10-Invalid arguments: birthday]": true
 }

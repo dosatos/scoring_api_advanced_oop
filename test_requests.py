@@ -6,6 +6,8 @@ import api
 from api import ADMIN_LOGIN, ADMIN_SALT, SALT, MethodRequest, \
     OnlineScoreRequest, ClientsInterestsRequest, Response, check_auth
 
+from store import Store
+
 
 @pytest.fixture
 def data():
@@ -50,40 +52,40 @@ class TestResponse:
         request = MethodRequest(data)
         assert not check_auth(request)
 
-    @pytest.mark.parametrize("field_name, field_value, expected_code", [
-        ("account", "horns&hoofs", 200),
-        ("method", "unknown_method", api.INVALID_REQUEST),
+    @pytest.mark.parametrize("field_name, field_value, expected_response, expected_code", [
+        ("account", "horns&hoofs", {'score': 5.0}, 200),
+        ("method", "unknown_method", api.ERRORS[api.INVALID_REQUEST], api.INVALID_REQUEST),
     ])
-    def test_method_handler_success(self, data, field_name, field_value, expected_code):
-        store = None
+    def test_method_handler_success(self, data, field_name, field_value, expected_response, expected_code):
+        store = Store()
         context = None
         data['token'] = generate_token(data, data['login'] == ADMIN_LOGIN)
         data[field_name] = field_value
         method_request = MethodRequest(data)
         response = Response(method_request, context, store)
         response, code = response.get_response()
+        assert response == expected_response
         assert code == expected_code
 
-    def test_invalid_fields(self):
-        assert False
+    @pytest.mark.parametrize("field_name, field_value, expected_response", [
+        ("birthday", "2010.10.10", "{}{}".format(api.INVALID_ARGS_MESSAGE, ", ".join(['birthday']))),
+    ])
+    def test_invalid_fields_response_message_is_generated_correctly(self, data, field_name, field_value, expected_response):
+        store = Store()
+        context = None
+        data['token'] = generate_token(data, data['login'] == ADMIN_LOGIN)
+        data['arguments'][field_name] = field_value
+        method_request = MethodRequest(data)
+        response = Response(method_request, context, store)
+        response, code = response.get_response()
+        assert response == expected_response
+        # method_request = MethodRequest(data)
+        # request = OnlineScoreRequest(method_request.arguments)
+        # print "!!!" * 30, type(data['arguments']['gender']), request.invalid_fields,
+        # assert  expected_response
 
-    # def test_generate_response_success(self, data):
-    #     data['token'] = generate_token(MethodRequest(data))
-    #     store = {
-    #         "request": MethodRequest(data),
-    #         "is_admin": False,
-    #         "used_method": OnlineScoreRequest(data),
-    #     }
-    #     r = OnlineScoreRequest(data)
-    #
-    #     assert [r.has_first_name, r.has_last_name,
-    #      r.has_birthday, r.has_gender,
-    #      r.has_phone, r.has_email] == 1
+    def test_context_is_passed_correctly(self):
+        pass
 
-        # response, code = Response(store).generate_response()
-        # assert (response, code) is True
-
-
-    # def test_generate_response_failure(self):
-    #     pass
-
+    def test_final_response_is_generated_correctly(self):
+        pass
